@@ -1469,14 +1469,15 @@ async function loadAvailability() {
     "</div>";
 
   try {
-    const result = await fetchJson(
-      createApiUrl(
-        "getBookings",
-        {
-          date: dateInput.value
-        }
-      )
-    );
+const result = await fetchJson(
+  createApiUrl(
+    "getBookings",
+    {
+      date: dateInput.value
+    }
+  ),
+  60000
+);
 
     if (!result.ok) {
       throw new Error(
@@ -1618,7 +1619,7 @@ bookingForm.addEventListener(
             time: timeSelect.value
           }
         ),
-        20000
+        60000
       );
 
       if (!result.ok) {
