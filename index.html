@@ -3,614 +3,1574 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>MTM Printworks Open Games Night</title>
-
+<title>StudioTrack — Dance Studio Attendance System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<script>
+tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{primary:{50:'#F5F3FF',100:'#EDE9FE',200:'#DDD6FE',300:'#C4B5FD',400:'#A78BFA',500:'#8B5CF6',600:'#7C3AED',700:'#6D28D9',800:'#5B21B6',900:'#4C1D95'},sidebar:'#1E1B2E',mainbg:'#F9FAFB'}}}}
+</script>
 <style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#F9FAFB;color:#1f2937;overflow:hidden;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#9ca3af}
+.sidebar{width:240px;min-width:240px;background:#1E1B2E;display:flex;flex-direction:column;height:100vh;transition:width .3s,min-width .3s;overflow:hidden;position:relative;z-index:40}
+.sidebar.collapsed{width:64px;min-width:64px}
+.sidebar.collapsed .nav-label,.sidebar.collapsed .logo-text,.sidebar.collapsed .user-info,.sidebar.collapsed .logout-text{display:none}
+.sidebar.collapsed .nav-item{justify-content:center;padding:10px}
+.sidebar.collapsed .logo-row{justify-content:center}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:8px;color:#a5a0b8;cursor:pointer;transition:all .15s;font-size:14px;font-weight:500;border-left:3px solid transparent;margin:2px 8px}
+.nav-item:hover{background:rgba(124,58,237,.15);color:#e0dcef}
+.nav-item.active{background:rgba(124,58,237,.25);color:#fff;border-left-color:#a78bfa}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.pill{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:500}
+.btn-primary{background:#7C3AED;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.btn-primary:hover{background:#6D28D9}
 
-:root{
-    --mtm:#009599;
-    --success:#16a34a;
-    --danger:#dc2626;
+
+
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-secondary{background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-secondary:hover{background:#E5E7EB}
+.btn-danger{background:#EF4444;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-danger:hover{background:#DC2626}
+.att-btn{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .15s;background:#f3f4f6;color:#6b7280}
+.att-btn.present{background:#D1FAE5;color:#065F46;border-color:#065F46}
+.att-btn.absent{background:#FEE2E2;color:#991B1B;border-color:#991B1B}
+.att-btn.late{background:#FEF3C7;color:#92400E;border-color:#92400E}
+.status-pill-present{background:#D1FAE5;color:#065F46}
+.status-pill-absent{background:#FEE2E2;color:#991B1B}
+.status-pill-late{background:#FEF3C7;color:#92400E}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#fff;border-radius:10px;padding:12px 20px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;transform:translateX(120%);transition:transform .3s ease;min-width:260px;border-left:4px solid #7C3AED}
+.toast.show{transform:translateX(0)}
+.toast.success{border-left-color:#10B981}.toast.error{border-left-color:#EF4444}.toast.warning{border-left-color:#F59E0B}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-panel{background:#fff;border-radius:16px;max-height:90vh;overflow-y:auto;width:90%;padding:24px;transform:scale(.95);transition:transform .2s}
+.modal-overlay.open .modal-panel{transform:scale(1)}
+.modal-sm .modal-panel{max-width:420px}.modal-md .modal-panel{max-width:520px}.modal-lg .modal-panel{max-width:900px}
+.form-label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:4px}
+.form-input{width:100%;padding:8px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:inherit;transition:border-color .15s;background:#fff}
+.form-input:focus{outline:none;border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.form-input.error{border-color:#EF4444}
+.fade-in{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.loading-overlay{position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.spinner{width:40px;height:40px;border:4px solid #E5E7EB;border-top-color:#7C3AED;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.main-area{flex:1;overflow-y:auto;padding:24px 32px;background:#F9FAFB}
+@media(max-width:768px){
+.sidebar{position:fixed;left:-240px;z-index:50;transition:left .3s}
+.sidebar.mobile-open{left:0 !important}
+.sidebar.collapsed{left:-64px}
+.main-area{padding:70px 14px 16px 14px}
+.mobile-toggle{display:flex!important}
+.modal-panel{padding:16px;width:95%}
+}
+.day-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#EDE9FE;color:#6D28D9}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.rate-bar{height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden}.rate-fill{height:100%;border-radius:3px;transition:width .4s}
+.tab-btn-row{display:flex;gap:4px;border-bottom:2px solid #E5E7EB;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tab-btn-row::-webkit-scrollbar{display:none}
+.tab-btn-item{padding:8px 16px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.tab-btn-item.active{color:#7C3AED;border-bottom-color:#7C3AED}
+.tab-btn-item:hover{color:#4C1D95}
+.event-type-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;flex-shrink:0}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#9CA3AF;text-align:center}
+.empty-state i{margin-bottom:12px}
+.code-block{background:#1E1B2E;color:#e2e8f0;padding:16px;border-radius:10px;font-family:'Courier New',monospace;font-size:12px;overflow-x:auto;white-space:pre;line-height:1.5;max-height:400px;overflow-y:auto}
+.hover-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .15s;z-index:2}
+.card:hover .hover-actions,.teacher-panel:hover .hover-actions{opacity:1}
+.hover-actions button{padding:4px;border-radius:6px;border:none;cursor:pointer;background:rgba(255,255,255,.9);color:#6b7280;transition:all .15s}
+.hover-actions button:hover{background:#7C3AED;color:#fff}
+.hover-actions button.del:hover{background:#EF4444}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px}
+.checkbox-item{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.checkbox-item input[type=checkbox]{accent-color:#7C3AED;width:16px;height:16px}
+.teacher-panel{position:relative;background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:box-shadow .2s}
+.teacher-panel:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.filter-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.filter-bar>div{flex:1;min-width:140px}
+@media(max-width:480px){
+.filter-bar{flex-direction:column}
+.filter-bar>div{min-width:100%;flex:none}
+.att-btn{padding:5px 10px;font-size:12px}
+}
+.stat-cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:1024px){.stat-cards-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.stat-cards-grid{grid-template-columns:1fr}}
+.dash-grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:768px){.dash-grid-2col{grid-template-columns:1fr}}
+.schedule-grid{display:flex;gap:4px;flex-wrap:wrap}
+.schedule-grid>div{flex:1;min-width:80px}
+@media(max-width:640px){.schedule-grid>div{min-width:calc(50% - 4px);flex:none}}
+.sidebar-bottom{padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:24px;font-weight:700;color:#111827}
+.att-actions-bar{margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.qr-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.qr-grid{grid-template-columns:1fr}}
+.classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+@media(max-width:480px){.classes-grid{grid-template-columns:1fr}}
+.students-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+@media(max-width:480px){.students-grid{grid-template-columns:1fr}}
+.mobile-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+.mobile-backdrop.show{display:block}
+.cors-note{background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400E;margin-bottom:16px;line-height:1.6}
+.cors-note strong{color:#78350F}
+@media (max-width: 768px) {
+
+    .att-btn {
+        min-height: 44px;
+        flex: 1;
+    }
+
+    #att-student-rows {
+        max-height: 50vh;
+    }
+
 }
 
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:Segoe UI,Arial,sans-serif;
-}
+@media (max-width: 768px) {
 
-body{
-    background:#009599;
-    padding:20px;
-}
+    /* Prevent horizontal scrolling */
+    html,
+    body,
+    #main-content {
+        overflow-x: hidden !important;
+    }
 
-.container{
-    max-width:1100px;
-    margin:auto;
-}
+    /* Attendance row becomes stacked */
+    #att-student-rows > div {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
 
-.card{
-    background:white;
-    border-radius:15px;
-    padding:25px;
-    margin-bottom:20px;
-}
+    /* Name section */
+    #att-student-rows > div > div:first-child {
+        width: 100%;
+    }
 
-h1{
-    margin-bottom:20px;
-}
+    /* Button row */
+    #att-student-rows > div > div:last-child {
+        width: 100%;
+        display: flex;
+        gap: 6px;
+    }
 
-.notice{
-    line-height:1.8;
-    margin-bottom:20px;
-}
+    .att-btn {
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        padding: 10px 4px;
+    }
 
-.form-group{
-    margin-bottom:15px;
 }
-
-label{
-    display:block;
-    margin-bottom:5px;
-    font-weight:bold;
-}
-
-input,
-select{
-    width:100%;
-    padding:12px;
-    border:1px solid #ccc;
-    border-radius:8px;
-}
-
-button{
-    width:100%;
-    padding:15px;
-    border:none;
-    border-radius:8px;
-    background:#009599;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-button:hover{
-    opacity:.9;
-}
-
-.table-card{
-    border-radius:10px;
-    padding:15px;
-    margin-bottom:10px;
-}
-
-.available{
-    background:#ecfdf5;
-    border-left:8px solid var(--success);
-}
-
-.booked{
-    background:#fef2f2;
-    border-left:8px solid var(--danger);
-}
-
-.success{
-    color:green;
-    margin-top:10px;
-}
-
-.error{
-    color:red;
-    margin-top:10px;
-}
-
 </style>
 </head>
+<body data-id="0">
+<app-icon data-id="1" hidden data-icon="clipboard-list" data-palette="Dark"></app-icon>
 
-<body>
-
-<div class="container">
-
-<div class="card">
-
-<h1>MTM Printworks Open Games Night Sign Up</h1>
-
-<div class="notice">
-
-MTM Printworks has open games night by sign up almost every Wednesday Night!
-
-<br><br>
-
-Tables are free to book and game mats and terrain are available for use.
-
-<br><br>
-
-Games can begin anytime after 4:30 PM but must begin by 7:00 PM.
-
-<br><br>
-
-Last turn is called at 9:45 PM and gaming ends at 10:00 PM.
-
+<div data-id="2" id="loading-screen" class="loading-overlay">
+<div data-id="3" class="spinner"></div>
+<div data-id="4" style="font-size:15px;font-weight:600;color:#374151">Connecting to Google Sheets…</div>
+<div data-id="5" style="font-size:13px;color:#9CA3AF">Fetching live data from Google Sheets…</div>
 </div>
 
-<form id="bookingForm">
+<div data-id="6" id="login-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1E1B2E 0%,#2d2545 50%,#1E1B2E 100%);z-index:200;overflow-y:auto">
+<div data-id="7" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+<div data-id="8" style="background:#fff;border-radius:20px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+<div data-id="9" style="text-align:center;margin-bottom:28px"><span data-id="10" style="font-size:40px">💃</span><h1 data-id="11" style="font-size:24px;font-weight:700;color:#1E1B2E;margin-top:8px">StudioTrack</h1><p data-id="12" style="color:#6b7280;font-size:14px;margin-top:4px">Dance Studio Attendance System</p></div>
+<div data-id="13" style="margin-bottom:16px"><label data-id="14" class="form-label">Username</label><input data-id="15" id="login-user" class="form-input" type="text" placeholder="Enter username" autocomplete="username"></div>
+<div data-id="16" style="margin-bottom:20px"><label data-id="17" class="form-label">Password</label><input data-id="18" id="login-pass" class="form-input" type="password" placeholder="Enter password" autocomplete="current-password"></div>
+<div data-id="19" id="login-error" style="display:none;background:#FEE2E2;color:#991B1B;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;font-weight:500"></div>
+<button data-id="20" id="login-btn" class="btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:15px">Sign In</button>
+<div data-id="21" style="margin-top:20px;border-top:1px solid #e5e7eb;padding-top:16px"><p data-id="22" style="font-size:12px;color:#9ca3af;margin-bottom:8px;text-align:center">Quick Login</p><div data-id="23" id="quick-logins" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center"></div></div>
+</div></div></div>
 
-<div class="form-group">
-<label>Date</label>
-<input type="date" id="date" required>
+<div data-id="24" id="app-shell" style="display:none;height:100vh;overflow:hidden">
+<div data-id="25" id="mobile-backdrop" class="mobile-backdrop"></div>
+<div data-id="26" style="display:flex;height:100vh">
+<aside data-id="27" id="sidebar" class="sidebar">
+<div data-id="28" class="logo-row" style="display:flex;align-items:center;gap:10px;padding:20px 16px 12px">
+<span data-id="29" style="font-size:28px;flex-shrink:0">💃</span>
+<span data-id="30" class="logo-text" style="color:#fff;font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden">StudioTrack</span>
 </div>
-
-<div class="form-group">
-<label>Time</label>
-
-<select id="time">
-
-<option>4:30 PM</option>
-<option>4:45 PM</option>
-<option>5:00 PM</option>
-<option>5:15 PM</option>
-<option>5:30 PM</option>
-<option>5:45 PM</option>
-<option>6:00 PM</option>
-<option>6:15 PM</option>
-<option>6:30 PM</option>
-<option>6:45 PM</option>
-<option>7:00 PM</option>
-
-</select>
-
+<button data-id="31" id="sidebar-toggle" style="position:absolute;top:20px;right:10px;width:28px;height:28px;border-radius:50%;background:#7C3AED;border:3px solid #F9FAFB;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;z-index:41;transition:transform .3s">‹</button>
+<nav data-id="32" id="nav-list" style="flex:1;padding:8px 0;overflow-y:auto"></nav>
+<div data-id="33" class="sidebar-bottom">
+<div data-id="34" class="user-info" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+<div data-id="35" id="user-avatar" class="avatar" style="width:34px;height:34px;font-size:12px;flex-shrink:0"></div>
+<div data-id="36" style="overflow:hidden"><div data-id="37" id="user-name" style="color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div data-id="38" id="user-role" style="color:#a5a0b8;font-size:11px;text-transform:capitalize"></div></div>
 </div>
-
-<div class="form-group">
-<label>Available Table</label>
-
-<select id="table" required>
-
-<option value="">
-Select Date & Time First
-</option>
-
-</select>
-
-</div>
-
-<div class="form-group">
-<label>Names</label>
-<input type="text" id="names" required>
-</div>
-
-<div class="form-group">
-<label>Table Size</label>
-
-<select id="tableSize">
-
-<option>4'x4'</option>
-<option>4'x6'</option>
-<option>4'x8'</option>
-
-</select>
-
-</div>
-
-<div class="form-group">
-<label>Game</label>
-
-<select id="game">
-
-<option>MESBG</option>
-<option>Warhammer 40k</option>
-<option>Warhammer Age of Sigmar</option>
-<option>Warhammer Old World</option>
-<option>Star Wars Legion</option>
-<option>SAGA</option>
-<option>Bolt Action</option>
-<option>Other</option>
-
-</select>
-
-</div>
-
-<button type="submit">
-
-Reserve Table
-
+<button data-id="39" id="logout-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#a5a0b8;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s">
+<i data-id="40" data-lucide="log-out" class="w-4 h-4"></i><span data-id="41" class="logout-text">Sign Out</span>
 </button>
-
-<div id="message"></div>
-
-</form>
-
+</div>
+</aside>
+<div data-id="42" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+<button data-id="43" id="mobile-menu-btn" class="mobile-toggle" style="display:none;position:fixed;top:12px;left:12px;z-index:45;width:40px;height:40px;border-radius:10px;background:#7C3AED;color:#fff;border:none;cursor:pointer;align-items:center;justify-content:center">
+<i data-id="44" data-lucide="menu" class="w-5 h-5"></i>
+</button>
+<div data-id="45" id="main-content" class="main-area"></div>
+</div>
+</div>
 </div>
 
-<div class="card">
+<div data-id="46" id="modal-root" class="modal-overlay modal-md"><div data-id="47" class="modal-panel" id="modal-panel"></div></div>
+<div data-id="48" id="confirm-root" class="modal-overlay modal-sm"><div data-id="49" class="modal-panel" id="confirm-panel"></div></div>
+<div data-id="50" class="toast-container" id="toast-container"></div>
 
-<h2>Current Availability</h2>
-
-<div id="availability">
-
-Select a Date and Time above.
-
-</div>
-
-</div>
-
-</div>
 
 <script>
+if(typeof lucide!=="undefined"&&typeof lucide.createIcons==="function"){lucide.createIcons()}
 
-const APPS_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzMRh6wHH1w8vVEsweNjrhqbJ90FPC6XGeWAjjhH8fpIexg_gdPtrE3mVhT-NIFj_7Ycw/exec";
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwtEfA9lv-8E4IutkY7UsgWvktXAHBuY4erswfxP4KA3DARHBMUNLbto2ZU8J3megaVcw/exec';
+const ADMIN_CRED={username:'admin',password:'Studio2026',role:'admin',displayName:'Admin',initials:'AD',color:'#7C3AED'};
+const DAYS_SHORT=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAYS_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-const TABLES = [
-"Table 1",
-"Table 2",
-"Table 3",
-"Table 4"
-];
+let DB={teachers:[],classes:[],students:[],attendance:[],events:[],loaded:false};
+let currentUser=null;
+let currentPage='dashboard';
+let weeklyChart=null;
 
-document
-.getElementById("date")
-.addEventListener(
-"change",
-loadAvailability
-);
+// ===================== UTILS =====================
+function parseDays(d){if(!d)return[];if(Array.isArray(d))return d;return String(d).split(',').map(s=>s.trim()).filter(Boolean)}
+function parseList(d){if(!d)return[];if(Array.isArray(d))return d;return String(d).split(',').map(s=>s.trim()).filter(Boolean)}
 
-document
-.getElementById("time")
-.addEventListener(
-"change",
-loadAvailability
-);
+function formatDate(value){
 
-function toMinutes(time){
+    if(!value) return '';
 
-    console.log(
-        "Converting Time:",
-        time
-    );
+    try{
 
-    if(!time){
-        return 0;
-    }
+        const dt = value.length === 10
+            ? new Date(value + 'T12:00:00')
+            : new Date(value);
 
-    time = String(time).trim();
-
-    time = time
-        .replace("a.m.", "AM")
-        .replace("p.m.", "PM")
-        .replace("a.m", "AM")
-        .replace("p.m", "PM");
-
-    const parts =
-    time.match(
-        /(\d+):(\d+)\s*(AM|PM)/i
-    );
-
-    if(!parts){
-
-        console.error(
-            "Invalid Time Format:",
-            time
-        );
-
-        return 0;
-    }
-
-    let hour =
-        parseInt(parts[1]);
-
-    const minute =
-        parseInt(parts[2]);
-
-    const ampm =
-        parts[3].toUpperCase();
-
-    if(
-        ampm === "PM" &&
-        hour !== 12
-    ){
-        hour += 12;
-    }
-
-    if(
-        ampm === "AM" &&
-        hour === 12
-    ){
-        hour = 0;
-    }
-
-    return hour * 60 + minute;
-
-}
-
-
-function formatTime(minutes){
-
-    let h =
-    Math.floor(minutes/60);
-
-    const m =
-    minutes % 60;
-
-    let suffix =
-    h >= 12 ? "PM" : "AM";
-
-    if(h > 12){
-        h -= 12;
-    }
-
-    return h + ":" +
-    m.toString().padStart(2,"0")
-    + " " + suffix;
-
-}
-
-function isWednesday(dateString){
-
-    const parts =
-    dateString.split("-");
-
-    const date =
-    new Date(
-        parseInt(parts[0]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[2])
-    );
-
-    return date.getDay() === 3;
-
-}
-
-
-async function loadAvailability(){
-
-    const date =
-    document
-    .getElementById("date")
-    .value;
-
-    const selectedTime =
-    document
-    .getElementById("time")
-    .value;
-
-    if(!date){
-        return;
-    }
-
-    const response =
-    await fetch(
-        APPS_SCRIPT_URL +
-        "?mode=availability&date=" +
-        date
-    );
-
-    const bookings =
-    await response.json();
-
-    const tableSelect =
-    document
-    .getElementById("table");
-
-    tableSelect.innerHTML = "";
-
-    let availabilityHTML = "";
-
-    TABLES.forEach(table=>{
-
-        const tableBookings =
-        bookings.filter(
-            booking =>
-            booking.table === table
-        );
-
-        let tableAvailable =
-        true;
-
-        tableBookings.forEach(booking=>{
-
-            const existing =
-            toMinutes(
-                booking.time
-            );
-
-            const selected =
-            toMinutes(
-                selectedTime
-            );
-
-            const diff =
-            Math.abs(
-                existing -
-                selected
-            );
-
-            if(diff < 150){
-
-                tableAvailable =
-                false;
-
-            }
-
+        return dt.toLocaleDateString('en-US',{
+            weekday:'short',
+            month:'short',
+            day:'numeric',
+            year:'numeric'
         });
 
-        if(tableAvailable){
+    }catch{
 
-            const option =
-            document
-            .createElement(
-                "option"
-            );
+        return value;
 
-            option.value =
-            table;
+    }
 
-            option.textContent =
-            table;
+}
 
-            tableSelect.appendChild(
-                option
-            );
+function formatTime(value){
 
-        }
+    if(!value) return '';
+
+    try{
+
+        const str = String(value);
 
         if(
-            tableBookings.length === 0
+            str.includes('1899-12-30') ||
+            str.includes('1899-12-31') ||
+            str.includes('T')
         ){
 
-            availabilityHTML += `
-            <div class="table-card available">
-            <strong>${table}</strong><br>
-            Available
-            </div>
-            `;
+            const d = new Date(value);
 
-        }
-        else{
-
-            tableBookings.forEach(
-            booking=>{
-
-                const start =
-                toMinutes(
-                    booking.time
-                );
-
-                const end =
-                start + 150;
-
-                availabilityHTML += `
-                <div class="table-card booked">
-
-                <strong>${table}</strong><br>
-
-                Player:
-                ${booking.names}<br>
-
-                Game:
-                ${booking.game}<br>
-
-                Time:
-                ${booking.time}
-                -
-                ${formatTime(end)}
-
-                </div>
-                `;
-
+            return d.toLocaleTimeString('en-US',{
+                hour:'numeric',
+                minute:'2-digit'
             });
 
         }
 
-    });
+        return value;
 
-    availability.innerHTML =
-    availabilityHTML;
+    }catch{
+
+        return value;
+
+    }
 
 }
 
-document
-.getElementById(
-"bookingForm"
-)
-.addEventListener(
-"submit",
-async function(e){
+function formatDateTime(value){
 
-    e.preventDefault();
+    if(!value) return '';
 
-    const date =
-    document
-    .getElementById("date")
-    .value;
+    try{
+
+        return new Date(value).toLocaleString('en-US',{
+            month:'short',
+            day:'numeric',
+            year:'numeric',
+            hour:'numeric',
+            minute:'2-digit'
+        });
+
+    }catch{
+
+        return value;
+
+    }
+
+}
+function calculateAge(dateOfBirth){
+
+    if(!dateOfBirth) return '';
+
+    const today = new Date();
+    const dob = new Date(dateOfBirth);
+
+    let age = today.getFullYear() - dob.getFullYear();
+
+    const monthDiff = today.getMonth() - dob.getMonth();
 
     if(
-        !isWednesday(date)
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < dob.getDate())
     ){
+        age--;
+    }
 
-        alert(
-        "Please select a Wednesday."
+    return age;
+}
+function studentAgeLabel(dob){
+
+    if(!dob) return 'Unknown';
+
+    return `${calculateAge(dob)} yrs`;
+
+}
+function todayStr(){return new Date().toISOString().split('T')[0]}
+function todayDow(){return DAYS_SHORT[new Date().getDay()]}
+function getTeacher(id){return DB.teachers.find(t=>t.id===id)}
+function getClass(id){return DB.classes.find(c=>c.id===id)}
+function getStudent(id){return DB.students.find(s=>s.id===id)}
+function initials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+function uid(prefix){return prefix+Date.now()+Math.floor(Math.random()*1000)}
+function canAccessClass(cls) {
+  if (!cls) return false;
+  if (currentUser.role === 'admin') return true;
+  return cls.teacherId === currentUser.teacherId || (cls.tempTeacherId && cls.tempTeacherId === currentUser.teacherId);
+}
+function escH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ===================== TOAST =====================
+function showToast(msg,type='success'){
+const c=document.getElementById('toast-container');
+const t=document.createElement('div');t.className='toast '+type;
+t.innerHTML=`<span>${escH(msg)}</span>`;
+c.appendChild(t);
+requestAnimationFrame(()=>t.classList.add('show'));
+setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},3000);
+}
+
+// ===================== MODAL =====================
+function openModal(html,size='md'){
+const root=document.getElementById('modal-root');
+root.className='modal-overlay modal-'+size;
+document.getElementById('modal-panel').innerHTML=html;
+root.classList.add('open');
+if(typeof lucide!=='undefined')lucide.createIcons({nameAttr:'data-lucide'});
+}
+function closeModal(){document.getElementById('modal-root').classList.remove('open')}
+function openConfirm(title,msg,onConfirm){
+const root=document.getElementById('confirm-root');
+document.getElementById('confirm-panel').innerHTML=`
+<h3 style="font-size:16px;font-weight:700;margin-bottom:8px">${escH(title)}</h3>
+<p style="font-size:14px;color:#6b7280;margin-bottom:20px">${escH(msg)}</p>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn-secondary" id="confirm-cancel">Cancel</button>
+<button class="btn-danger" id="confirm-ok">Delete</button></div>`;
+root.classList.add('open');
+document.getElementById('confirm-cancel').addEventListener('click',()=>root.classList.remove('open'));
+document.getElementById('confirm-ok').addEventListener('click',()=>{root.classList.remove('open');onConfirm()});
+}
+
+// ===================== API =====================
+async function apiGet(){
+  try {
+    const r = await fetch(SCRIPT_URL + '?action=getAll');
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    DB.teachers = (d.teachers || []).map(t => ({...t, active: t.active !== false && t.active !== 'false' && t.active !== 0}));
+    DB.classes  = (d.classes  || []).map(c => ({...c, active: c.active !== false && c.active !== 'false' && c.active !== 0}));
+    DB.students = (d.students || []).map(s => ({
+    ...s,
+    active: s.active !== false && s.active !== 'false' && s.active !== 0
+}));
+``
+    DB.attendance = d.attendance || [];
+    DB.events     = d.events     || [];
+    DB.loaded = true;
+  } catch(e) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'none';
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="sheets-error-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#1E1B2E 0%,#2d2545 50%,#1E1B2E 100%);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;">
+        <div style="background:#fff;border-radius:20px;padding:40px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+          <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+          <h2 style="font-size:20px;font-weight:700;color:#1E1B2E;margin-bottom:12px;">Could Not Connect to Google Sheets</h2>
+          <p style="font-size:14px;color:#6b7280;margin-bottom:8px;">StudioTrack requires a live connection to your Google Sheets database. The request failed:</p>
+          <div style="background:#FEE2E2;border-radius:8px;padding:10px 14px;font-size:13px;color:#991B1B;font-family:monospace;margin-bottom:20px;word-break:break-all;">${escH(e.message || 'Network error')}</div>
+          <div style="text-align:left;background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:20px;font-size:13px;color:#374151;line-height:1.8;">
+            <strong>Troubleshooting steps:</strong><br>
+            1. Confirm the Apps Script is deployed as a <strong>Web App</strong><br>
+            2. Set "Who has access" to <strong>Anyone</strong><br>
+            3. Make sure the <code style="background:#e5e7eb;padding:1px 5px;border-radius:3px;">SCRIPT_URL</code> in the HTML matches your deployment URL<br>
+            4. Open your deployment URL directly in a browser tab to test it
+          </div>
+          <button id="retry-connection-btn" style="background:#7C3AED;color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">↺ Retry Connection</button>
+        </div>
+      </div>`);
+    setTimeout(() => {
+      const retryBtn = document.getElementById('retry-connection-btn');
+      if (retryBtn) retryBtn.addEventListener('click', () => location.reload());
+    }, 0);
+    throw e;
+  }
+}
+
+async function apiPost(action, payload) {
+  try {
+    const params = new URLSearchParams({ action, payload: JSON.stringify(payload || {}) });
+    const r = await fetch(SCRIPT_URL + '?' + params.toString());
+    const text = await r.text();
+    try { return JSON.parse(text); } catch { return { ok: true }; }
+  } catch(e) {
+    showToast('Network error — could not save to Sheets', 'error');
+    return { ok: false, error: e.message };
+  }
+}
+
+// ===================== LOGIN =====================
+function buildQuickLogins(){
+const c=document.getElementById('quick-logins');c.innerHTML='';
+const creds=[{u:'admin',p:'Studio2026',label:'Admin',color:'#7C3AED'}];
+DB.teachers.forEach(t=>{if(t.username&&t.password)creds.push({u:t.username,p:t.password,label:t.name,color:t.color||'#8B5CF6'})});
+creds.forEach(cr=>{
+const b=document.createElement('button');
+b.className='btn-secondary';b.style.cssText='font-size:12px;padding:4px 12px';
+b.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:${cr.color};display:inline-block;flex-shrink:0"></span>${escH(cr.label)}`;
+b.addEventListener('click',()=>{document.getElementById('login-user').value=cr.u;document.getElementById('login-pass').value=cr.p;doLogin()});
+c.appendChild(b);
+})}
+function doLogin(){
+const u=document.getElementById('login-user').value.trim();
+const p=document.getElementById('login-pass').value.trim();
+const errEl=document.getElementById('login-error');
+if(!u||!p){errEl.textContent='Please enter username and password';errEl.style.display='block';return}
+if(u===ADMIN_CRED.username&&p===ADMIN_CRED.password){
+currentUser={...ADMIN_CRED};
+}else{
+const t=DB.teachers.find(t=>t.username===u&&t.password===p);
+if(!t){errEl.textContent='Invalid username or password';errEl.style.display='block';return}
+currentUser={username:t.username,password:t.password,role:'teacher',displayName:t.name,initials:t.initials||initials(t.name),color:t.color||'#8B5CF6',teacherId:t.id};
+}
+errEl.style.display='none';
+sessionStorage.setItem('studiotrack_session',JSON.stringify(currentUser));
+showApp();
+}
+function tryResumeSession(){
+const s=sessionStorage.getItem('studiotrack_session');
+if(s){try{currentUser=JSON.parse(s);return true}catch{}}return false;
+}
+
+// ===================== NAV =====================
+const NAV_ITEMS=[
+{id:'dashboard',icon:'layout-dashboard',label:'Dashboard'},
+{id:'attendance',icon:'clipboard-list',label:'Take Attendance'},
+{id:'classes',icon:'users',label:'Classes'},
+{id:'students',icon:'user',label:'Students'},
+{id:'teachers',icon:'graduation-cap',label:'Teachers'},
+{id:'events',icon:'calendar-heart',label:'Events'}
+];
+function buildNav(){
+const nav=document.getElementById('nav-list');nav.innerHTML='';
+NAV_ITEMS.forEach(item=>{
+const d=document.createElement('div');d.className='nav-item'+(currentPage===item.id?' active':'');
+d.dataset.page=item.id;
+d.innerHTML=`<i data-lucide="${item.icon}" class="w-5 h-5" style="flex-shrink:0"></i><span class="nav-label">${item.label}</span>`;
+d.addEventListener('click',()=>navigateTo(item.id));
+nav.appendChild(d);
+});
+if(typeof lucide!=='undefined')lucide.createIcons({nameAttr:'data-lucide'});
+}
+function navigateTo(page){
+currentPage=page;buildNav();renderPage();
+const sb=document.getElementById('sidebar');
+if(sb.classList.contains('mobile-open')){
+sb.classList.remove('mobile-open');
+document.getElementById('mobile-backdrop').classList.remove('show');
+}
+}
+
+// ===================== SHOW APP =====================
+function showApp(){
+document.getElementById('login-screen').style.display='none';
+document.getElementById('app-shell').style.display='block';
+document.getElementById('user-name').textContent=currentUser.displayName;
+document.getElementById('user-role').textContent=currentUser.role;
+const av=document.getElementById('user-avatar');av.textContent=currentUser.initials;av.style.background=currentUser.color;
+buildNav();renderPage();
+}
+
+// ===================== RENDER PAGE =====================
+function renderPage(){
+const mc=document.getElementById('main-content');
+mc.scrollTop=0;
+switch(currentPage){
+case'dashboard':renderDashboard(mc);break;
+case'attendance':renderAttendance(mc);break;
+case'classes':renderClasses(mc);break;
+case'students':renderStudents(mc);break;
+case'teachers':renderTeachersPage(mc);break;
+case'events':renderEvents(mc);break;
+}
+if(typeof lucide!=='undefined')lucide.createIcons({nameAttr:'data-lucide'});
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard(mc){
+const today=todayStr();const dow=todayDow();
+const activeStudents=DB.students.filter(s=>s.active!==false);
+const activeClasses=DB.classes.filter(c=>c.active!==false);
+const todayClasses=activeClasses.filter(c=>parseDays(c.days).includes(dow));
+const weekDates=[];const now=new Date();const dayOfWeek=now.getDay();const startOfWeek=new Date(now);startOfWeek.setDate(now.getDate()-dayOfWeek);
+for(let i=0;i<7;i++){const d=new Date(startOfWeek);d.setDate(startOfWeek.getDate()+i);weekDates.push(d.toISOString().split('T')[0])}
+const weekAtt=DB.attendance.filter(a=>weekDates.includes(a.date));
+const weekRate=weekAtt.length?Math.round(weekAtt.filter(a=>a.status==='present'||a.status==='late').length/weekAtt.length*100):0;
+
+const upcomingEvents=DB.events.filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
+
+const last7=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);last7.push(d.toISOString().split('T')[0])}
+const chartLabels=last7.map(d=>{const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-US',{weekday:'short'})});
+const chartData=last7.map(d=>{const da=DB.attendance.filter(a=>a.date===d);return da.length?Math.round(da.filter(a=>a.status==='present'||a.status==='late').length/da.length*100):0});
+
+const attByDate={};DB.attendance.forEach(a=>{const k=a.date+'|'+a.classId;if(!attByDate[k])attByDate[k]={date:a.date,classId:a.classId,count:0,markedBy:a.markedBy};attByDate[k].count++});
+const sessionArr=Object.values(attByDate).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+
+mc.innerHTML=`<div class="fade-in">
+<div class="page-header">
+<div><h1 class="page-header-title" style="font-size:24px;font-weight:700;color:#111827">Dashboard</h1><p style="color:#6b7280;font-size:14px;margin-top:2px">Welcome back, ${escH(currentUser.displayName)}! Today is ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</p></div></div>
+<div class="stat-cards-grid">
+<div class="card" style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="users" class="w-5 h-5" style="color:#7C3AED"></i></div><div><div style="font-size:24px;font-weight:700" class="tabular-nums">${activeStudents.length}</div><div style="font-size:12px;color:#6b7280;font-weight:500">Total Students</div></div></div>
+<div class="card" style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;border-radius:10px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="music" class="w-5 h-5" style="color:#3B82F6"></i></div><div><div style="font-size:24px;font-weight:700" class="tabular-nums">${activeClasses.length}</div><div style="font-size:12px;color:#6b7280;font-weight:500">Active Classes</div></div></div>
+<div class="card" style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;border-radius:10px;background:#D1FAE5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="calendar" class="w-5 h-5" style="color:#059669"></i></div><div><div style="font-size:24px;font-weight:700" class="tabular-nums">${todayClasses.length}</div><div style="font-size:12px;color:#6b7280;font-weight:500">Today's Sessions</div></div></div>
+<div class="card" style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px;border-radius:10px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="trending-up" class="w-5 h-5" style="color:#D97706"></i></div><div><div style="font-size:24px;font-weight:700" class="tabular-nums">${weekRate}%</div><div style="font-size:12px;color:#6b7280;font-weight:500">Weekly Attendance</div></div></div>
+</div>
+<div class="dash-grid-2col">
+<div class="card"><h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Today's Classes</h3>
+${todayClasses.length?todayClasses.map(c=>{const t=getTeacher(c.teacherId);return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6"><div class="avatar" style="width:32px;height:32px;font-size:10px;background:${t?t.color:'#6b7280'}">${t?t.initials:'?'}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(c.name)}</div><div style="font-size:12px;color:#6b7280">${escH(formatTime(c.time))} · ${escH(c.room)}</div></div><span class="pill" style="background:#EDE9FE;color:#6D28D9;flex-shrink:0">${escH(c.ageGroup)}</span></div>`}).join(''):'<p style="color:#9ca3af;font-size:13px">No classes scheduled today</p>'}
+</div>
+<div class="card"><h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Weekly Attendance Trend</h3><div style="position:relative;height:200px"><canvas id="weekly-chart-canvas"></canvas></div></div>
+</div>
+<div class="dash-grid-2col">
+<div class="card"><h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Recent Activity</h3>
+${sessionArr.length?sessionArr.map(s=>{const c=getClass(s.classId);return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6"><i data-lucide="clipboard-check" class="w-4 h-4" style="color:#7C3AED;flex-shrink:0"></i><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c?escH(c.name):'Unknown'}</div><div style="font-size:12px;color:#6b7280">${escH(s.markedBy||'')} · ${s.count} students</div></div><span style="font-size:11px;color:#9ca3af;flex-shrink:0;white-space:nowrap">${formatDate(s.date)}</span></div>`}).join(''):'<p style="color:#9ca3af;font-size:13px">No recent activity</p>'}
+</div>
+<div class="card"><h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Upcoming Events</h3>
+${upcomingEvents.length?upcomingEvents.map(e=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6"><div style="width:6px;min-height:36px;border-radius:3px;background:${e.color||'#6b7280'};flex-shrink:0;margin-top:2px"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(e.name)}</div><div style="font-size:12px;color:#6b7280">${formatDate(e.date)}${e.endDate&&e.endDate!==e.date?' — '+formatDate(e.endDate):''}</div></div><span class="event-type-badge" style="background:${e.color||'#6b7280'}22;color:${e.color||'#6b7280'}">${escH(e.type||'event')}</span></div>`).join(''):'<p style="color:#9ca3af;font-size:13px">No upcoming events</p>'}
+</div></div>
+<footer style="padding:24px 0 8px;text-align:center"><p style="font-size:12px;color:#9ca3af">Made by Copilot</p></footer>
+</div>`;
+
+setTimeout(()=>{
+const ctx=document.getElementById('weekly-chart-canvas');
+if(!ctx)return;
+if(weeklyChart)weeklyChart.destroy();
+weeklyChart=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:chartLabels,datasets:[{label:'Attendance %',data:chartData,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.1)',fill:true,tension:.4,pointBackgroundColor:'#7C3AED',pointRadius:4,pointHoverRadius:6,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100,grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>v+'%',font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+},100);
+}
+
+// ===================== TAKE ATTENDANCE =====================
+function renderAttendance(mc){
+  const isAdmin = currentUser.role === 'admin';
+  const DAY_ABBRS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  mc.innerHTML = `<div class="fade-in">
+<div class="page-header">
+  <div><h1 style="font-size:24px;font-weight:700">Take Attendance</h1>
+  <p style="color:#6b7280;font-size:14px;margin-top:2px">Select a date to see today's classes</p></div>
+</div>
+
+<div class="card" style="margin-bottom:20px;padding:14px 20px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div>
+      <label class="form-label" style="margin-bottom:4px">Date</label>
+      <input type="date" id="att-date" class="form-input" style="min-width:180px" value="${todayStr()}">
+    </div>
+    <div id="att-day-badge" style="margin-top:18px"></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start" id="att-layout">
+  <div>
+    <h3 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Classes on this day</h3>
+    <div id="att-class-list"><p style="color:#9ca3af;font-size:13px;text-align:center;padding:30px 10px">Select a date to load classes</p></div>
+  </div>
+  <div id="att-roster-panel">
+    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#d1d5db">
+      <div style="text-align:center"><div style="font-size:40px;margin-bottom:10px">👈</div><p style="font-size:14px">Select a class to take attendance</p></div>
+    </div>
+  </div>
+</div>
+</div>`;
+
+  // Responsive: stack on narrow screens
+  const layout = document.getElementById('att-layout');
+  const checkWidth = () => { if(window.innerWidth < 768) layout.style.gridTemplateColumns = '1fr'; else layout.style.gridTemplateColumns = '300px 1fr'; };
+  checkWidth();
+  window.addEventListener('resize', checkWidth);
+
+  const dateInput = document.getElementById('att-date');
+  let selectedClassId = null;
+  let marks = {};
+
+  function getDow(dateStr) {
+    return new Date(dateStr + 'T12:00:00').getDay(); // 0=Sun
+  }
+
+  function loadClassesForDate() {
+    const dateStr = dateInput.value;
+    if (!dateStr) return;
+    const dowIdx = getDow(dateStr);
+    const dowAbbr = DAY_ABBRS[dowIdx];
+    const dowLabel = DAY_LABELS[dowIdx];
+
+    // Day badge
+    document.getElementById('att-day-badge').innerHTML =
+      `<span style="background:#EDE9FE;color:#6D28D9;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600">${dowLabel}</span>`;
+
+    // Filter classes teaching on this day of week
+    const myClasses = isAdmin
+      ? DB.classes.filter(c => c.active !== false)
+      : DB.classes.filter(c => c.active !== false && (c.teacherId === currentUser.teacherId || (c.tempTeacherId && c.tempTeacherId === currentUser.teacherId)));
+
+    const todayClasses = myClasses.filter(c => parseDays(c.days).includes(dowAbbr));
+
+    const cl = document.getElementById('att-class-list');
+    if (!todayClasses.length) {
+      cl.innerHTML = `<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:10px;padding:16px;text-align:center;font-size:13px;color:#92400E">No classes scheduled for ${dowLabel}s</div>`;
+      document.getElementById('att-roster-panel').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:200px;color:#d1d5db"><div style="text-align:center"><div style="font-size:40px;margin-bottom:10px">📭</div><p style="font-size:14px">No classes on ${dowLabel}s</p></div></div>`;
+      selectedClassId = null;
+      return;
+    }
+
+    cl.innerHTML = todayClasses.map(c => {
+      const t = getTeacher(c.teacherId);
+      const tempT = c.tempTeacherId ? getTeacher(c.tempTeacherId) : null;
+      const enrolled = DB.students.filter(s => s.active !== false && parseList(s.classes).includes(c.id));
+      const taken = DB.attendance.filter(a => a.classId === c.id && a.date === dateStr);
+      const pct = enrolled.length ? Math.round(taken.filter(a => a.status === 'present' || a.status === 'late').length / enrolled.length * 100) : null;
+      const timeStr = c.time
+    ? (c.endTime
+        ? formatTime(c.time) + ' – ' + formatTime(c.endTime)
+        : formatTime(c.time))
+    : '';
+      return `<div class="att-class-card${selectedClassId === c.id ? ' selected' : ''}" data-cid="${c.id}" style="background:#fff;border:2px solid ${selectedClassId === c.id ? '#7C3AED' : '#E5E7EB'};border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(c.name)}</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:2px">${t ? escH(t.name) : ''}${timeStr ? ' · ' + escH(timeStr) : ''}${c.room ? ' · ' + escH(c.room) : ''}</div>
+            ${tempT ? `<div style="font-size:11px;color:#F59E0B;font-weight:600;margin-top:2px">⚡ Temp: ${escH(tempT.name)}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:12px;color:#6b7280">${enrolled.length} student${enrolled.length !== 1 ? 's' : ''}</div>
+            ${pct !== null ? `<div style="font-size:12px;font-weight:600;color:${pct >= 70 ? '#065F46' : '#991B1B'}">${pct}% att.</div>` : '<div style="font-size:11px;color:#9ca3af">Not taken</div>'}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('.att-class-card').forEach(card => {
+      card.addEventListener('click', function() {
+        selectedClassId = this.dataset.cid;
+        loadClassesForDate(); // re-render class list to update selected highlight
+        loadRoster(selectedClassId, dateStr);
+      });
+    });
+
+    // If a class was previously selected, reload its roster
+    if (selectedClassId && todayClasses.find(c => c.id === selectedClassId)) {
+      loadRoster(selectedClassId, dateStr);
+    }
+  }
+
+  function loadRoster(cid, dateStr) {
+    marks = {};
+    const cls = getClass(cid);
+    if (!cls) return;
+    const t = getTeacher(cls.teacherId);
+    const enrolled = DB.students.filter(s => s.active !== false && parseList(s.classes).includes(cid));
+    const existing = DB.attendance.filter(a => a.classId === cid && a.date === dateStr);
+    enrolled.forEach(s => { const ex = existing.find(a => a.studentId === s.id); marks[s.id] = ex ? ex.status : null; });
+
+    const timeStr = cls.time
+    ? (cls.endTime
+        ? formatTime(cls.time) + ' – ' + formatTime(cls.endTime)
+        : formatTime(cls.time))
+    : '';
+``
+    const dowIdx = getDow(dateStr);
+    const dateLabel = new Date(dateStr + 'T12:00:00').toLocaleDateString('en-CA', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+
+    const rp = document.getElementById('att-roster-panel');
+    if (!enrolled.length) {
+      rp.innerHTML = `<div class="card"><p style="color:#9ca3af;text-align:center;padding:30px">No students enrolled in ${escH(cls.name)}</p></div>`;
+      return;
+    }
+
+    const allMarked = () => Object.values(marks).every(v => v !== null);
+    const presentCount = () => Object.values(marks).filter(v => v === 'present').length;
+    const absentCount = () => Object.values(marks).filter(v => v === 'absent').length;
+    const lateCount = () => Object.values(marks).filter(v => v === 'late').length;
+
+    
+
+    function renderRoster() {
+      const pc = presentCount(), ac = absentCount(), lc = lateCount();
+      const total = enrolled.length;
+      const marked = pc + ac + lc;
+      rp.innerHTML = `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div>
+            <h2 style="font-size:18px;font-weight:700">${escH(cls.name)}</h2>
+            <p style="font-size:13px;color:#6b7280">${t ? escH(t.name) : ''}${timeStr ? ' · ' + escH(timeStr) : ''} · ${dateLabel}</p>
+            ${cls.notes ? `
+<div style="
+margin-top:10px;
+padding:10px;
+background:#FEF3C7;
+border-left:4px solid #F59E0B;
+border-radius:6px;
+font-size:12px;
+line-height:1.5;
+">
+<strong>Teacher Notes:</strong>
+${escH(cls.notes)}
+</div>
+` : ''}
+          </div>
+          <div style="display:flex;gap:8px">
+            <span style="background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${pc} Present</span>
+            <span style="background:#FEE2E2;color:#991B1B;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${ac} Absent</span>
+            <span style="background:#FEF3C7;color:#92400E;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${lc} Late</span>
+          </div>
+        </div>
+        <div style="background:#f3f4f6;border-radius:8px;height:6px;margin-bottom:16px"><div style="background:#7C3AED;height:6px;border-radius:8px;transition:width .3s;width:${Math.round(marked/total*100)}%"></div></div>
+        <div
+    id="att-student-rows"
+    style="
+        max-height: 60vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-right: 4px;
+    ">
+
+        ${enrolled.map(s => {
+          const st = marks[s.id];
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f3f4f6;gap:12px" data-sid="${s.id}">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <div class="avatar" style="width:34px;height:34px;font-size:12px;background:${t?.color||'#7C3AED'};flex-shrink:0">${initials(s.name)}</div>
+              <div style="min-width:0">
+                <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(s.name)}</div>
+                <div style="font-size:11px;color:#9ca3af">
+    Born ${formatDate(s.dateOfBirth)}
+</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="att-btn ${st==='present'?'present':''}" data-sid="${s.id}" data-status="present" style="font-size:12px;padding:5px 10px">✓ Present</button>
+              <button class="att-btn ${st==='late'?'late':''}" data-sid="${s.id}" data-status="late" style="font-size:12px;padding:5px 10px">⏱ Late</button>
+              <button class="att-btn ${st==='absent'?'absent':''}" data-sid="${s.id}" data-status="absent" style="font-size:12px;padding:5px 10px">✗ Absent</button>
+            </div>
+          </div>`;
+        }).join('')}
+        </div>
+        <div
+    style="
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 12px;
+        margin-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        z-index: 50;
+    ">
+          <div style="display:flex;gap:8px">
+            <button id="att-mark-all-present" class="btn-secondary" style="font-size:12px;padding:6px 12px">Mark All Present</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span id="att-save-status" style="font-size:12px;color:#6b7280"></span>
+            <button id="att-save-btn" class="btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Save Attendance</button>
+          </div>
+        </div>
+      </div>`;
+
+      // Attach button listeners
+rp.querySelectorAll('.att-btn').forEach(btn =>
+  btn.addEventListener('click', function() {
+
+    const sid = this.dataset.sid;
+    const st = this.dataset.status;
+
+    marks[sid] = st;
+
+    const row = this.closest('[data-sid]');
+
+    const rosterContainer =
+      document.getElementById('att-student-rows');
+
+    const currentScroll =
+      rosterContainer ? rosterContainer.scrollTop : 0;
+
+    const allRows =
+      Array.from(
+        document.querySelectorAll('#att-student-rows > div[data-sid]')
+      );
+
+    const currentIndex =
+      allRows.findIndex(r => r.dataset.sid === sid);
+
+    renderRoster();
+
+    setTimeout(() => {
+
+      const newContainer =
+        document.getElementById('att-student-rows');
+
+      if (newContainer) {
+        newContainer.scrollTop = currentScroll;
+      }
+
+      const refreshedRows =
+        Array.from(
+          document.querySelectorAll('#att-student-rows > div[data-sid]')
         );
 
-        return;
+      const nextRow =
+        refreshedRows[currentIndex + 1];
+
+      if (nextRow) {
+        nextRow.scrollIntoView({
+          block: 'center',
+          behavior: 'smooth'
+        });
+      }
+
+    }, 0);
+
+}));
+
+      // Mark All Present
+      const mapBtn = rp.querySelector('#att-mark-all-present');
+      if (mapBtn) mapBtn.addEventListener('click', () => {
+        enrolled.forEach(s => { marks[s.id] = 'present'; });
+        renderRoster();
+      });
+
+      // Save
+      const saveBtn = rp.querySelector('#att-save-btn');
+      if (saveBtn) saveBtn.addEventListener('click', async () => {
+        const markedEntries = Object.entries(marks).filter(([,v]) => v);
+        if (!markedEntries.length) { showToast('Please mark at least one student', 'warning'); return; }
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px"></span> Saving…';
+        const ts = new Date().toISOString();
+        const records = markedEntries.map(([sid, status], i) => ({
+          id: 'A' + Date.now() + i,
+          classId: cid,
+          studentId: sid,
+          date: dateStr,
+          status,
+          markedBy: currentUser.displayName,
+          timestamp: ts
+        }));
+        // Upsert local DB — update existing or add new
+        records.forEach(r => {
+          const idx = DB.attendance.findIndex(a => a.classId === r.classId && a.studentId === r.studentId && a.date === r.date);
+          if (idx >= 0) DB.attendance[idx] = r; else DB.attendance.push(r);
+        });
+        await apiPost('saveAttendanceBatch', { records });
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Save Attendance';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        rp.querySelector('#att-save-status').textContent = '● Saved · ' + new Date().toLocaleTimeString();
+        showToast('Attendance saved!');
+        // Refresh class list to update attendance % badges
+        loadClassesForDate();
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    const booking = {
+    renderRoster();
+  }
 
-        Date:
-        date,
+  // Wire up date picker
+  dateInput.addEventListener('change', () => {
+    selectedClassId = null;
+    document.getElementById('att-roster-panel').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:200px;color:#d1d5db"><div style="text-align:center"><div style="font-size:40px;margin-bottom:10px">👈</div><p style="font-size:14px">Select a class to take attendance</p></div></div>`;
+    loadClassesForDate();
+  });
 
-        Table:
-        document
-        .getElementById("table")
-        .value,
+  // Load on init
+  loadClassesForDate();
+}
 
-        Names:
-        document
-        .getElementById("names")
-        .value,
+// ===================== CLASSES =====================
+function renderClasses(mc){
+mc.innerHTML=`<div class="fade-in">
+<div class="page-header">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="font-size:24px;font-weight:700">Classes</h1><span class="pill" style="background:#EDE9FE;color:#6D28D9;font-weight:700">${DB.classes.filter(c=>c.active!==false).length}</span></div>
+<button id="add-class-btn" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Add Class</button>
+</div>
+<div class="card" style="margin-bottom:20px;padding:14px 16px"><div class="filter-bar">
+<div><input id="class-search" class="form-input" placeholder="Search classes…"></div>
+<div style="flex:0 0 auto;min-width:150px"><select id="class-teacher-filter" class="form-input"><option value="">All Teachers</option>${DB.teachers.filter(t=>t.active!==false).map(t=>`<option value="${t.id}">${escH(t.name)}</option>`).join('')}</select></div>
+<div style="flex:0 0 auto;min-width:120px"><select id="class-day-filter" class="form-input"><option value="">All Days</option>${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<option value="${d}">${d}</option>`).join('')}</select></div>
+</div></div>
+<div id="classes-grid" class="classes-grid"></div>
+</div>`;
 
-        "Table Size":
-        document
-        .getElementById("tableSize")
-        .value,
+document.getElementById('add-class-btn').addEventListener('click',()=>showClassModal());
+function renderClassCards(){
+const q=document.getElementById('class-search').value.toLowerCase();
+const tf=document.getElementById('class-teacher-filter').value;
+const df=document.getElementById('class-day-filter').value;
+let filtered=DB.classes.filter(c=>c.active!==false);
+if(q)filtered=filtered.filter(c=>c.name.toLowerCase().includes(q));
+if(tf)filtered=filtered.filter(c=>c.teacherId===tf);
+if(df)filtered=filtered.filter(c=>parseDays(c.days).includes(df));
+const grid=document.getElementById('classes-grid');
+if(!filtered.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><i data-lucide="music" class="w-12 h-12"></i><p style="font-size:15px;margin-top:8px">No classes found</p><button class="btn-primary" style="margin-top:12px" id="empty-add-class"><i data-lucide="plus" class="w-4 h-4"></i> Add Class</button></div>';
+setTimeout(()=>{const b=document.getElementById('empty-add-class');if(b)b.addEventListener('click',()=>showClassModal())},10);
+if(typeof lucide!=='undefined')lucide.createIcons();return}
+grid.innerHTML=filtered.map(c=>{
+const t=getTeacher(c.teacherId);
+const enrolled=DB.students.filter(s=>s.active!==false&&parseList(s.classes).includes(c.id));
+const att=DB.attendance.filter(a=>a.classId===c.id);
+const rate=att.length?Math.round(att.filter(a=>a.status==='present'||a.status==='late').length/att.length*100):0;
+return`<div class="card" style="position:relative;cursor:pointer" data-cid="${c.id}">
+<div class="hover-actions"><button class="edit-class-btn" data-cid="${c.id}" title="Edit"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button><button class="del del-class-btn" data-cid="${c.id}" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>
+<h3 style="font-size:16px;font-weight:700;margin-bottom:8px;padding-right:60px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(c.name)}</h3>
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">${t?`<span style="width:8px;height:8px;border-radius:50%;background:${t.color};display:inline-block;flex-shrink:0"></span><span style="font-size:13px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(t.name)}</span>`:'<span style="font-size:13px;color:#9ca3af">Unassigned</span>'}</div>
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"><span class="pill" style="background:#F3F4F6;color:#374151">${escH(c.ageGroup||'')}</span></div>
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${parseDays(c.days).map(d=>`<span class="day-chip">${d}</span>`).join('')}</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:8px"><span>${escH(formatTime(c.time))}
+3
+${c.endTime ? ' – ' + escH(formatTime(c.endTime)) : ''}</span><span>${escH(c.room||'')}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px"><span style="color:#6b7280">${enrolled.length} enrolled</span><span style="font-weight:600;color:${rate>=70?'#065F46':rate>=50?'#92400E':'#991B1B'}">${rate}%</span></div>
+<div class="rate-bar"><div class="rate-fill" style="width:${rate}%;background:${rate>=70?'#10B981':rate>=50?'#F59E0B':'#EF4444'}"></div></div>
+</div>`}).join('');
+if(typeof lucide!=='undefined')lucide.createIcons();
+document.querySelectorAll('.edit-class-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();showClassModal(b.dataset.cid)}));
+document.querySelectorAll('.del-class-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const c=getClass(b.dataset.cid);openConfirm('Delete Class',`Delete "${c?.name}"? This will remove all references.`,async()=>{DB.classes=DB.classes.filter(x=>x.id!==b.dataset.cid);await apiPost('deleteClass',{id:b.dataset.cid});renderClassCards();showToast('Class deleted')})}));
+document.querySelectorAll('[data-cid]').forEach(card=>{
+if(!card.classList.contains('card'))return;
+card.addEventListener('click',()=>showClassDetail(card.dataset.cid));
+});
+}
+renderClassCards();
+document.getElementById('class-search').addEventListener('input',renderClassCards);
+document.getElementById('class-teacher-filter').addEventListener('change',renderClassCards);
+document.getElementById('class-day-filter').addEventListener('change',renderClassCards);
+}
 
-        Game:
-        document
-        .getElementById("game")
-        .value,
+function showClassModal(editId){
+const cls=editId?getClass(editId):null;
+const title=cls?'Edit Class':'Add New Class';
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 style="font-size:18px;font-weight:700">${title}</h2><button id="modal-close-x" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px">✕</button></div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div><label class="form-label">Class Name *</label><input id="mc-name" class="form-input" value="${cls?escH(cls.name):''}" placeholder="e.g. Ballet Tots"></div>
+<div><label class="form-label">Teacher *</label><select id="mc-teacher" class="form-input"><option value="">Select teacher…</option>${DB.teachers.filter(t=>t.active!==false).map(t=>`<option value="${t.id}" ${cls&&cls.teacherId===t.id?'selected':''}>${escH(t.name)}</option>`).join('')}</select></div>
+<div><label class="form-label">Days</label><div class="checkbox-group">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<label class="checkbox-item"><input type="checkbox" value="${d}" ${cls&&parseDays(cls.days).includes(d)?'checked':''}>${d}</label>`).join('')}</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+<div><label class="form-label">Start Time</label><input id="mc-time" class="form-input" value="${cls?escH(cls.time||''):''}" placeholder="10:00 AM"></div>
+<div><label class="form-label">End Time</label><input id="mc-endtime" class="form-input" value="${cls?escH(cls.endTime||''):''}" placeholder="11:00 AM"></div>
+<div><label class="form-label">Room</label><input id="mc-room" class="form-input" value="${cls?escH(cls.room||''):''}" placeholder="Studio A"></div>
+</div>
 
-        Time:
-        document
-        .getElementById("time")
-        .value
+<div>
+<label class="form-label">Age Group</label>
+<input id="mc-age" class="form-input"
+value="${cls?escH(cls.ageGroup||''):''}"
+placeholder="Ages 7-12">
+</div>
 
-    };
+<div>
+<label class="form-label">Class Notes</label>
+<textarea
+id="mc-notes"
+class="form-input"
+rows="4"
+placeholder="Dress code, behaviour expectations, recital reminders, costume information, etc."
+>${cls?escH(cls.notes||''):''}</textarea>
+</div>
 
-    const response =
-    await fetch(
-        APPS_SCRIPT_URL,
-        {
-            method:"POST",
-            body:JSON.stringify(
-                booking
-            )
-        }
-    );
 
-    const result =
-    await response.json();
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+<button class="btn-secondary" id="mc-cancel">Cancel</button>
+<button class="btn-primary" id="mc-save"><i data-lucide="save" class="w-4 h-4"></i> Save Class</button>
+</div></div>`,'md');
+document.getElementById('modal-close-x').addEventListener('click',closeModal);
+document.getElementById('mc-cancel').addEventListener('click',closeModal);
+document.getElementById('mc-save').addEventListener('click',async()=>{
+const name=document.getElementById('mc-name').value.trim();
+const teacherId=document.getElementById('mc-teacher').value;
+if(!name){document.getElementById('mc-name').classList.add('error');showToast('Class name is required','error');return}
+if(!teacherId){document.getElementById('mc-teacher').classList.add('error');showToast('Please select a teacher','error');return}
+const days=Array.from(document.querySelectorAll('#modal-panel .checkbox-group input:checked')).map(i=>i.value).join(',');
 
-    if(result.success){
+const row={
+id:cls?cls.id:uid('CL'),
+name,
+teacherId,
+tempTeacherId:cls?cls.tempTeacherId||'':'',
+days,
+time:document.getElementById('mc-time').value.trim(),
+endTime:document.getElementById('mc-endtime').value.trim(),
+room:document.getElementById('mc-room').value.trim(),
+ageGroup:document.getElementById('mc-age').value.trim(),
+notes:document.getElementById('mc-notes').value.trim(),
+active:true
+};
 
-        document
-        .getElementById(
-            "message"
-        )
-        .innerHTML =
-        "<div class='success'>Reservation Submitted</div>";
+const idx=DB.classes.findIndex(c=>c.id===row.id);
+if(idx>=0)DB.classes[idx]=row;else DB.classes.push(row);
+closeModal();renderPage();showToast('Class saved!');
+await apiPost('saveClass',{row});
+});
+if(typeof lucide!=='undefined')lucide.createIcons();
+}
 
-        loadAvailability();
+function showClassDetail(cid){
+const cls=getClass(cid);if(!cls)return;
+const isAdmin=currentUser.role==='admin';
+const canSeeStudents=canAccessClass(cls);
+const t=getTeacher(cls.teacherId);
+const tempT=cls.tempTeacherId?getTeacher(cls.tempTeacherId):null;
+const enrolled=DB.students.filter(s=>s.active!==false&&parseList(s.classes).includes(cid));
+const att=DB.attendance.filter(a=>a.classId===cid);
+const sessions={};att.forEach(a=>{if(!sessions[a.date])sessions[a.date]={date:a.date,records:[]};sessions[a.date].records.push(a)});
+const sessionList=Object.values(sessions).sort((a,b)=>b.date.localeCompare(a.date));
+const timeLabel =
+    cls.time
+        ? (cls.endTime
+            ? formatTime(cls.time) + ' – ' + formatTime(cls.endTime)
+            : formatTime(cls.time))
+        : '';
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px">
+  <div style="min-width:0">
+    <h2 style="font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(cls.name)}</h2>
+    <p style="color:#6b7280;font-size:13px">${t?escH(t.name):''} · ${escH(timeLabel)} · ${escH(cls.room||'')}</p>
+    ${cls.notes ? `
+<div style="
+margin-top:12px;
+padding:12px;
+background:#F9FAFB;
+border-left:4px solid #7C3AED;
+border-radius:6px;
+font-size:13px;
+line-height:1.6;
+">
+<strong>Class Notes</strong><br>
+${escH(cls.notes)}
+</div>
+` : ''}
+    ${tempT?`<p style="color:#F59E0B;font-size:12px;font-weight:600;margin-top:2px">⚡ Temp: ${escH(tempT.name)}</p>`:''}
+  </div>
+  <button id="cd-close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px;flex-shrink:0">✕</button>
+</div>
+${isAdmin?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+  <button id="cd-assign-temp" class="btn-secondary" style="font-size:12px;padding:6px 12px">⚡ Change Teacher Temporarily</button>
+  <button id="cd-assign-perm" style="background:#F59E0B;color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🔁 Change Teacher Permanently</button>
+  ${tempT?`<button id="cd-clear-temp" style="background:#EF4444;color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">✕ Remove Temp Teacher</button>`:''}
+</div>`:''}
+<div class="tab-btn-row"><div class="tab-btn-item active" data-ctab="sessions">Session History</div><div class="tab-btn-item" data-ctab="students">Students (${enrolled.length})</div></div>
+<div id="cd-tab-content">
+<div id="ctab-sessions">${sessionList.length?`<div style="overflow-x:auto"><table style="width:100%;min-width:420px"><thead><tr style="border-bottom:2px solid #f3f4f6"><th style="text-align:left;padding:8px;font-size:12px;color:#6b7280">DATE</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">PRESENT</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">ABSENT</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">LATE</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">RATE</th></tr></thead><tbody>${sessionList.slice(0,20).map(s=>{const p=s.records.filter(r=>r.status==='present').length;const a=s.records.filter(r=>r.status==='absent').length;const l=s.records.filter(r=>r.status==='late').length;const rate=Math.round((p+l)/s.records.length*100);return`<tr style="border-bottom:1px solid #f9fafb"><td style="padding:8px;font-size:13px;white-space:nowrap">${formatDate(s.date)}</td><td style="text-align:center;padding:8px"><span class="pill status-pill-present">${p}</span></td><td style="text-align:center;padding:8px"><span class="pill status-pill-absent">${a}</span></td><td style="text-align:center;padding:8px"><span class="pill status-pill-late">${l}</span></td><td style="text-align:center;padding:8px;font-weight:600;font-size:13px">${rate}%</td></tr>`}).join('')}</tbody></table></div>`:'<p style="color:#9ca3af;text-align:center;padding:20px">No sessions recorded yet</p>'}</div>
+<div id="ctab-students" style="display:none">
+${canSeeStudents
+  ? (enrolled.length?`<div style="overflow-x:auto"><table style="width:100%;min-width:320px"><thead><tr style="border-bottom:2px solid #f3f4f6"><th style="text-align:left;padding:8px;font-size:12px;color:#6b7280">STUDENT</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">SESSIONS</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">RATE</th></tr></thead><tbody>${enrolled.map(s=>{const sa=att.filter(a=>a.studentId===s.id);const rate=sa.length?Math.round(sa.filter(a=>a.status==='present'||a.status==='late').length/sa.length*100):0;return`<tr style="border-bottom:1px solid #f9fafb"><td style="padding:8px;font-size:13px;font-weight:600">${escH(s.name)}</td><td style="text-align:center;padding:8px;font-size:13px">${sa.length}</td><td style="text-align:center;padding:8px;font-weight:600;color:${rate>=70?'#065F46':'#991B1B'}">${rate}%</td></tr>`}).join('')}</tbody></table></div>`:'<p style="color:#9ca3af;text-align:center;padding:20px">No students enrolled</p>')
+  : `<div style="text-align:center;padding:40px 20px"><div style="font-size:36px;margin-bottom:12px">🔒</div><p style="font-size:15px;font-weight:600;color:#374151;margin-bottom:6px">Access Restricted</p><p style="font-size:13px;color:#6b7280">Student details for this class are only visible to the assigned teacher.</p></div>`
+}
+</div>
+</div>`,'lg');
+document.getElementById('cd-close').addEventListener('click',closeModal);
+document.querySelectorAll('[data-ctab]').forEach(tb=>tb.addEventListener('click',function(){
+document.querySelectorAll('[data-ctab]').forEach(x=>x.classList.remove('active'));this.classList.add('active');
+document.getElementById('ctab-sessions').style.display=this.dataset.ctab==='sessions'?'block':'none';
+document.getElementById('ctab-students').style.display=this.dataset.ctab==='students'?'block':'none';
+}));
+if(isAdmin){
+  const assignTemp=document.getElementById('cd-assign-temp');
+  const assignPerm=document.getElementById('cd-assign-perm');
+  const clearTemp=document.getElementById('cd-clear-temp');
+  if(assignTemp)assignTemp.addEventListener('click',()=>showAssignTeacherModal(cid,'temp'));
+  if(assignPerm)assignPerm.addEventListener('click',()=>showAssignTeacherModal(cid,'perm'));
+  if(clearTemp)clearTemp.addEventListener('click',async()=>{
+    const c=getClass(cid);if(!c)return;
+    const row={...c,tempTeacherId:''};
+    const idx=DB.classes.findIndex(x=>x.id===cid);if(idx>=0)DB.classes[idx]=row;
+    closeModal();showToast('Temporary teacher removed');renderPage();
+    await apiPost('saveClass',{row});
+  });
+}
+}
 
-    }
-    else{
+function showAssignTeacherModal(cid, mode){
+const cls=getClass(cid);if(!cls)return;
+const isTemp=mode==='temp';
+const title=isTemp?'⚡ Assign Temporary Teacher':'🔁 Change Teacher Permanently';
+const desc=isTemp
+  ?'The selected teacher will be added as a temporary cover. They can see all class data. The original teacher retains permanent access.'
+  :'The selected teacher will permanently replace the current teacher. The previous teacher will lose all access to this class.';
+const otherTeachers=DB.teachers.filter(t=>t.active!==false&&t.id!==cls.teacherId);
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+  <h2 style="font-size:18px;font-weight:700">${title}</h2>
+  <button id="at-close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px">✕</button>
+</div>
+<div style="background:${isTemp?'#FEF3C7':'#FEE2E2'};border:1px solid ${isTemp?'#F59E0B':'#EF4444'};border-radius:8px;padding:12px 14px;font-size:13px;color:${isTemp?'#92400E':'#991B1B'};margin-bottom:16px;line-height:1.6">${desc}</div>
+<div style="margin-bottom:8px"><p style="font-size:13px;color:#6b7280;margin-bottom:4px">Current teacher: <strong>${escH(getTeacher(cls.teacherId)?.name||'Unassigned')}</strong></p>${cls.tempTeacherId?`<p style="font-size:13px;color:#F59E0B;font-weight:600">Current temp: ${escH(getTeacher(cls.tempTeacherId)?.name||'')}</p>`:''}</div>
+<div style="margin-bottom:16px"><label class="form-label">Select New ${isTemp?'Temporary ':''}Teacher</label>
+<select id="at-teacher" class="form-input"><option value="">Choose a teacher…</option>${DB.teachers.filter(t=>t.active!==false).map(t=>`<option value="${t.id}">${escH(t.name)}</option>`).join('')}</select></div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+  <button class="btn-secondary" id="at-cancel">Cancel</button>
+  <button style="background:${isTemp?'#F59E0B':'#EF4444'};color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer" id="at-confirm">Confirm</button>
+</div>`,'md');
+document.getElementById('at-close').addEventListener('click',closeModal);
+document.getElementById('at-cancel').addEventListener('click',closeModal);
+document.getElementById('at-confirm').addEventListener('click',async()=>{
+  const newTeacherId=document.getElementById('at-teacher').value;
+  if(!newTeacherId){showToast('Please select a teacher','warning');return}
+  const c=getClass(cid);if(!c)return;
+  let row;
+  if(isTemp){
+    row={...c,tempTeacherId:newTeacherId};
+    showToast('Temporary teacher assigned!');
+  } else {
+    row={...c,teacherId:newTeacherId,tempTeacherId:''};
+    showToast('Teacher permanently changed!');
+  }
+  const idx=DB.classes.findIndex(x=>x.id===cid);if(idx>=0)DB.classes[idx]=row;
+  closeModal();renderPage();
+  await apiPost('saveClass',{row});
+});
+}
 
-        document
-        .getElementById(
-            "message"
-        )
-        .innerHTML =
-        "<div class='error'>" +
-        result.message +
-        "</div>";
+// ===================== STUDENTS =====================
+function renderStudents(mc){
+const isAdmin = currentUser.role === 'admin';
+const visibleClasses = isAdmin
+  ? DB.classes.filter(c => c.active !== false)
+  : DB.classes.filter(c => c.active !== false && (c.teacherId === currentUser.teacherId || (c.tempTeacherId && c.tempTeacherId === currentUser.teacherId)));
+
+mc.innerHTML=`<div class="fade-in">
+<div class="page-header">
+<div style="display:flex;align-items:center;gap:10px"><h1 style="font-size:24px;font-weight:700">Student Profiles</h1><span class="pill" style="background:#EDE9FE;color:#6D28D9;font-weight:700">${DB.students.filter(s=>s.active!==false).length}</span></div>
+<button id="add-student-btn" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Add Student</button>
+</div>
+<div class="card" style="margin-bottom:20px;padding:14px 16px"><div class="filter-bar">
+<div><input id="student-search" class="form-input" placeholder="Search students…"></div>
+<div style="flex:0 0 auto;min-width:160px"><select id="student-class-filter" class="form-input"><option value="">All Classes</option>${visibleClasses.map(c=>`<option value="${c.id}">${escH(c.name)}</option>`).join('')}</select></div>
+</div></div>
+<div id="students-grid" class="students-grid"></div>
+</div>`;
+document.getElementById('add-student-btn').addEventListener('click',()=>showStudentModal());
+function renderStudentCards(){
+const q=document.getElementById('student-search').value.toLowerCase();
+const cf=document.getElementById('student-class-filter').value;
+let filtered = isAdmin
+  ? DB.students.filter(s => s.active !== false)
+  : DB.students.filter(s => s.active !== false && parseList(s.classes).some(cid => visibleClasses.some(c => c.id === cid)));
+if(q)filtered=filtered.filter(s=>s.name.toLowerCase().includes(q));
+if(cf)filtered=filtered.filter(s=>parseList(s.classes).includes(cf));
+const grid=document.getElementById('students-grid');
+if(!filtered.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><i data-lucide="user-x" class="w-12 h-12"></i><p style="margin-top:8px">No students found</p><button class="btn-primary" style="margin-top:12px" id="empty-add-stu"><i data-lucide="plus" class="w-4 h-4"></i> Add Student</button></div>';setTimeout(()=>{const b=document.getElementById('empty-add-stu');if(b)b.addEventListener('click',()=>showStudentModal())},10);if(typeof lucide!=='undefined')lucide.createIcons();return}
+grid.innerHTML=filtered.map(s=>{
+const att=DB.attendance.filter(a=>a.studentId===s.id);
+const rate=att.length?Math.round(att.filter(a=>a.status==='present'||a.status==='late').length/att.length*100):0;
+const stClasses=parseList(s.classes).map(cid=>getClass(cid)).filter(Boolean);
+const colors=['#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6','#EF4444'];
+const color=colors[s.name.charCodeAt(0)%colors.length];
+return`<div class="card" style="position:relative;cursor:pointer" data-sid="${s.id}">
+<div class="hover-actions"><button class="edit-stu-btn" data-sid="${s.id}" title="Edit"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button><button class="del del-stu-btn" data-sid="${s.id}" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-right:50px"><div class="avatar" style="background:${color}">${initials(s.name)}</div><div style="min-width:0"><div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(s.name)}</div><span class="pill"
+      style="background:#F3F4F6;color:#374151;font-size:11px">
+    ${calculateAge(s.dateOfBirth)} yrs
+</span></div></div>
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">${stClasses.map(c=>`<span class="pill" style="background:#EDE9FE;color:#6D28D9;font-size:11px">${escH(c.name)}</span>`).join('')}</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#6b7280"><span>Attendance: <strong style="color:${rate>=70?'#065F46':'#991B1B'}">${rate}%</strong></span><span style="white-space:nowrap">Joined ${formatDate(s.joined)}</span></div>
+</div>`}).join('');
+if(typeof lucide!=='undefined')lucide.createIcons();
+document.querySelectorAll('.edit-stu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();showStudentModal(b.dataset.sid)}));
+document.querySelectorAll('.del-stu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const s=getStudent(b.dataset.sid);openConfirm('Delete Student',`Remove "${s?.name}"? This cannot be undone.`,async()=>{DB.students=DB.students.filter(x=>x.id!==b.dataset.sid);await apiPost('deleteStudent',{id:b.dataset.sid});renderStudentCards();showToast('Student deleted')})}));
+document.querySelectorAll('#students-grid .card[data-sid]').forEach(c=>c.addEventListener('click',()=>showStudentDetail(c.dataset.sid)));
+}
+renderStudentCards();
+document.getElementById('student-search').addEventListener('input',renderStudentCards);
+document.getElementById('student-class-filter').addEventListener('change',renderStudentCards);
+}
+
+function showStudentModal(editId){
+const stu=editId?getStudent(editId):null;
+const title=stu?'Edit Student':'Add New Student';
+const stClasses=stu?parseList(stu.classes):[];
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 style="font-size:18px;font-weight:700">${title}</h2><button id="ms-close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px">✕</button></div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div><label class="form-label">Full Name *</label><input id="ms-name" class="form-input" value="${stu?escH(stu.name):''}" placeholder="Student name"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div>
+<label class="form-label">Date of Birth</label>
+<input id="ms-dob" class="form-input" type="date"
+       value="${stu?stu.dateOfBirth||'':''}">
+</div>
+
+<div>
+<label class="form-label">Phone</label>
+<input id="ms-phone" class="form-input"
+       value="${stu?escH(stu.phone||''):''}"
+       placeholder="604-555-0000">
+</div>
+</div>
+
+<div>
+<label class="form-label">Email</label>
+<input id="ms-email" class="form-input" type="email"
+       value="${stu?escH(stu.email||''):''}"
+       placeholder="parent@example.com">
+</div>
+<div><label class="form-label">Joined Date</label><input id="ms-joined" class="form-input" type="date" value="${stu?stu.joined||'':todayStr()}"></div>
+<div><label class="form-label">Enrolled Classes</label><div class="checkbox-group" id="ms-classes">${DB.classes.filter(c=>c.active!==false).map(c=>`<label class="checkbox-item"><input type="checkbox" value="${c.id}" ${stClasses.includes(c.id)?'checked':''}>${escH(c.name)}</label>`).join('')}</div></div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+<button class="btn-secondary" id="ms-cancel">Cancel</button>
+<button class="btn-primary" id="ms-save"><i data-lucide="save" class="w-4 h-4"></i> Save Student</button>
+</div></div>`,'md');
+document.getElementById('ms-close').addEventListener('click',closeModal);
+document.getElementById('ms-cancel').addEventListener('click',closeModal);
+document.getElementById('ms-save').addEventListener('click',async()=>{
+const name=document.getElementById('ms-name').value.trim();
+if(!name){document.getElementById('ms-name').classList.add('error');showToast('Name is required','error');return}
+const classes=Array.from(document.querySelectorAll('#ms-classes input:checked')).map(i=>i.value).join(',');
+const row={
+    id:stu?stu.id:uid('S'),
+    name,
+    dateOfBirth:document.getElementById('ms-dob').value,
+    phone:document.getElementById('ms-phone').value.trim(),
+    email:document.getElementById('ms-email').value.trim(),
+    classes,
+    joined:document.getElementById('ms-joined').value||todayStr(),
+    active:true
+};
+const idx=DB.students.findIndex(s=>s.id===row.id);if(idx>=0)DB.students[idx]=row;else DB.students.push(row);
+closeModal();renderPage();showToast('Student saved!');
+await apiPost('saveStudent',{row});
+});
+if(typeof lucide!=='undefined')lucide.createIcons();
+}
+
+function showStudentDetail(sid){
+const s=getStudent(sid);if(!s)return;
+const isAdm = currentUser.role === 'admin';
+const myClassIds = isAdm ? null : DB.classes.filter(c => c.active !== false && c.teacherId === currentUser.teacherId).map(c => c.id);
+const stClasses = parseList(s.classes).map(cid => getClass(cid)).filter(c => c && (isAdm || myClassIds.includes(c.id)));
+const att=DB.attendance.filter(a=>a.studentId===sid);
+const rate=att.length?Math.round(att.filter(a=>a.status==='present'||a.status==='late').length/att.length*100):0;
+const colors=['#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6','#EF4444'];
+const color=colors[s.name.charCodeAt(0)%colors.length];
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:12px">
+<div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="avatar" style="width:48px;height:48px;font-size:16px;background:${color}">${initials(s.name)}</div><div style="min-width:0"><h2 style="font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(s.name)}</h2><p style="color:#6b7280;font-size:13px">
+    Born ${formatDate(s.dateOfBirth)} ·
+    ${calculateAge(s.dateOfBirth)} years old ·
+    ${escH(s.phone||'No phone')} ·
+    ${escH(s.email||'No email')} ·
+    Joined ${formatDate(s.joined)}
+</p></div></div>
+<button id="sd-close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px;flex-shrink:0">✕</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:700;color:#7C3AED">${rate}%</div><div style="font-size:12px;color:#6b7280;margin-top:2px">Overall Rate</div></div>
+<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:700">${att.filter(a=>a.status==='present').length}</div><div style="font-size:12px;color:#6b7280;margin-top:2px">Present</div></div>
+<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:700">${att.filter(a=>a.status==='absent').length}</div><div style="font-size:12px;color:#6b7280;margin-top:2px">Absent</div></div>
+</div>
+<h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Breakdown by Class</h3>
+${stClasses.length?`<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;min-width:320px"><thead><tr style="border-bottom:2px solid #f3f4f6"><th style="text-align:left;padding:8px;font-size:12px;color:#6b7280">CLASS</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">SESSIONS</th><th style="text-align:center;padding:8px;font-size:12px;color:#6b7280">RATE</th></tr></thead><tbody>${stClasses.map(c=>{const ca=att.filter(a=>a.classId===c.id);const cr=ca.length?Math.round(ca.filter(a=>a.status==='present'||a.status==='late').length/ca.length*100):0;return`<tr style="border-bottom:1px solid #f9fafb"><td style="padding:8px;font-size:13px;font-weight:600">${escH(c.name)}</td><td style="text-align:center;padding:8px">${ca.length}</td><td style="text-align:center;padding:8px;font-weight:600;color:${cr>=70?'#065F46':'#991B1B'}">${cr}%</td></tr>`}).join('')}</tbody></table></div>`:'<p style="color:#9ca3af;font-size:13px;margin-bottom:16px">Not enrolled in any classes</p>'}
+<h3 style="font-size:15px;font-weight:700;margin-bottom:10px">Recent History</h3>
+${att.length?`<div style="overflow-x:auto;max-height:200px;overflow-y:auto"><table style="width:100%;min-width:320px"><thead style="position:sticky;top:0;background:#fff"><tr style="border-bottom:2px solid #f3f4f6"><th style="text-align:left;padding:6px 8px;font-size:12px;color:#6b7280">DATE</th><th style="text-align:left;padding:6px 8px;font-size:12px;color:#6b7280">CLASS</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#6b7280">STATUS</th></tr></thead><tbody>${att.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).map(a=>{const c=getClass(a.classId);return`<tr style="border-bottom:1px solid #f9fafb"><td style="padding:6px 8px;font-size:12px;white-space:nowrap">${formatDate(a.date)}</td><td style="padding:6px 8px;font-size:12px">${c?escH(c.name):''}</td><td style="text-align:center;padding:6px 8px"><span class="pill status-pill-${a.status}">${a.status}</span></td></tr>`}).join('')}</tbody></table></div>`:'<p style="color:#9ca3af;font-size:13px">No attendance records</p>'}
+`,'lg');
+document.getElementById('sd-close').addEventListener('click',closeModal);
+}
+
+// ===================== TEACHERS =====================
+function renderTeachersPage(mc){
+const isAdmin=currentUser.role==='admin';
+const teachers=DB.teachers.filter(t=>t.active!==false);
+const visibleTeachers = isAdmin ? teachers : teachers.filter(t => t.id === currentUser.teacherId);
+
+mc.innerHTML=`<div class="fade-in">
+<div class="page-header">
+<h1 style="font-size:24px;font-weight:700">Teachers</h1>
+${isAdmin?'<button id="add-teacher-btn" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Add Teacher</button>':''}
+</div>
+${isAdmin ? `<div class="tab-btn-row" id="teacher-tabs">
+<div class="tab-btn-item active" data-ttab="all">All Teachers</div>
+${teachers.map(t=>`<div class="tab-btn-item" data-ttab="${t.id}">${escH(t.name)}</div>`).join('')}
+</div>` : ''}
+<div id="teachers-content"></div>
+</div>`;
+if(isAdmin){document.getElementById('add-teacher-btn').addEventListener('click',()=>showTeacherModal())}
+function renderTeacherTab(tabId){
+const tc=document.getElementById('teachers-content');
+const list = tabId === 'all' ? visibleTeachers : visibleTeachers.filter(t => t.id === tabId);
+tc.innerHTML=list.map(t=>{
+const showPrivate = isAdmin || t.id === currentUser.teacherId;
+const tClasses=DB.classes.filter(c=>c.active!==false&&c.teacherId===t.id);
+const tAtt=DB.attendance.filter(a=>tClasses.some(c=>c.id===a.classId));
+const rate=tAtt.length?Math.round(tAtt.filter(a=>a.status==='present'||a.status==='late').length/tAtt.length*100):0;
+const sessions=new Set(tAtt.map(a=>a.date+'|'+a.classId)).size;
+return`<div class="teacher-panel" style="margin-bottom:16px">
+${isAdmin?`<div class="hover-actions"><button class="edit-tea-btn" data-tid="${t.id}" title="Edit"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button><button class="del del-tea-btn" data-tid="${t.id}" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`:''}
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-right:60px">
+<div class="avatar" style="width:52px;height:52px;font-size:18px;background:${t.color}">${t.initials||initials(t.name)}</div>
+<div style="min-width:0"><h3 style="font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(t.name)}</h3><p style="color:#6b7280;font-size:13px">${escH(t.specialty||'')}</p></div>
+</div>
+${showPrivate ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">
+<div style="background:#F9FAFB;padding:12px;border-radius:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Username</div><div style="font-size:14px;font-weight:600;word-break:break-all">${escH(t.username||'')}</div></div>
+<div style="background:#F9FAFB;padding:12px;border-radius:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Password</div><div style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="pwd-mask" data-tid="${t.id}">••••••••</span><button class="pwd-toggle" data-tid="${t.id}" data-pwd="${escH(t.password||'')}" style="background:none;border:none;cursor:pointer;color:#7C3AED;font-size:11px;font-weight:600;white-space:nowrap">Show</button></div></div>
+<div style="background:#F9FAFB;padding:12px;border-radius:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Sessions</div><div style="font-size:14px;font-weight:600">${sessions}</div></div>
+<div style="background:#F9FAFB;padding:12px;border-radius:8px"><div style="font-size:12px;color:#6b7280;margin-bottom:2px">Avg Attendance</div><div style="font-size:14px;font-weight:600;color:${rate>=70?'#065F46':'#991B1B'}">${rate}%</div></div>
+</div>` : ''}
+<h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Weekly Schedule</h4>
+<div class="schedule-grid" style="margin-bottom:16px">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>{const dayClasses=tClasses.filter(c=>parseDays(c.days).includes(d));return`<div style="background:${dayClasses.length?'#EDE9FE':'#F9FAFB'};padding:8px;border-radius:8px;text-align:center"><div style="font-size:11px;font-weight:700;color:${dayClasses.length?'#6D28D9':'#9CA3AF'};margin-bottom:4px">${d}</div>${dayClasses.map(c=>`<div style="font-size:10px;color:#374151;background:#fff;padding:2px 6px;border-radius:4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(c.name)}</div>`).join('')||'<div style="font-size:10px;color:#d1d5db">—</div>'}</div>`}).join('')}</div>
+${tClasses.length?`<h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Classes (${tClasses.length})</h4><div style="overflow-x:auto"><table style="width:100%;min-width:420px"><thead><tr style="border-bottom:2px solid #f3f4f6"><th style="text-align:left;padding:6px 8px;font-size:12px;color:#6b7280">CLASS</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#6b7280">DAYS</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#6b7280">TIME</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#6b7280">ENROLLED</th></tr></thead><tbody>${tClasses.map(c=>{const enrolled=DB.students.filter(s=>s.active!==false&&parseList(s.classes).includes(c.id)).length;return`<tr style="border-bottom:1px solid #f9fafb"><td style="padding:6px 8px;font-size:13px;font-weight:600">${escH(c.name)}</td><td style="text-align:center;padding:6px 8px">${parseDays(c.days).map(d=>`<span class="day-chip" style="margin:1px">${d}</span>`).join('')}</td><td style="text-align:center;padding:6px 8px;font-size:13px;white-space:nowrap">${escH(formatTime(c.time))}
+</td><td style="text-align:center;padding:6px 8px;font-size:13px;font-weight:600">${enrolled}</td></tr>`}).join('')}</tbody></table></div>`:''}`}).join('');
+if(typeof lucide!=='undefined')lucide.createIcons();
+document.querySelectorAll('.pwd-toggle').forEach(b=>b.addEventListener('click',function(){
+const mask=document.querySelector(`.pwd-mask[data-tid="${this.dataset.tid}"]`);
+if(this.textContent==='Show'){mask.textContent=this.dataset.pwd;this.textContent='Hide'}else{mask.textContent='••••••••';this.textContent='Show'}
+}));
+if(isAdmin){
+document.querySelectorAll('.edit-tea-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();showTeacherModal(b.dataset.tid)}));
+document.querySelectorAll('.del-tea-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const t=getTeacher(b.dataset.tid);openConfirm('Delete Teacher',`Remove "${t?.name}"? Their classes will become unassigned.`,async()=>{DB.teachers=DB.teachers.filter(x=>x.id!==b.dataset.tid);await apiPost('deleteTeacher',{id:b.dataset.tid});renderPage();showToast('Teacher deleted')})}));
+}
+}
+renderTeacherTab('all');
+if(isAdmin){
+document.querySelectorAll('#teacher-tabs .tab-btn-item').forEach(tb=>tb.addEventListener('click',function(){
+document.querySelectorAll('#teacher-tabs .tab-btn-item').forEach(x=>x.classList.remove('active'));this.classList.add('active');
+renderTeacherTab(this.dataset.ttab);
+}));
+}
+}
+
+function showTeacherModal(editId){
+const t=editId?getTeacher(editId):null;
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 style="font-size:18px;font-weight:700">${t?'Edit Teacher':'Add New Teacher'}</h2><button id="mt-close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px">✕</button></div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div><label class="form-label">Full Name *</label><input id="mt-name" class="form-input" value="${t?escH(t.name):''}" placeholder="Teacher name"></div>
+<div><label class="form-label">Specialty</label><input id="mt-specialty" class="form-input" value="${t?escH(t.specialty||''):''}" placeholder="e.g. Ballet & Contemporary"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div><label class="form-label">Username *</label><input id="mt-user" class="form-input" value="${t?escH(t.username||''):''}" placeholder="username"></div>
+<div><label class="form-label">Password *</label><input id="mt-pass" class="form-input" value="${t?escH(t.password||''):''}" placeholder="password"></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div><label class="form-label">Color</label><input id="mt-color" class="form-input" type="color" value="${t?t.color:'#8B5CF6'}"></div>
+<div><label class="form-label">Initials</label><input id="mt-initials" class="form-input" value="${t?escH(t.initials||''):''}" placeholder="Auto from name" maxlength="2"></div>
+</div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+<button class="btn-secondary" id="mt-cancel">Cancel</button>
+<button class="btn-primary" id="mt-save"><i data-lucide="save" class="w-4 h-4"></i> Save Teacher</button>
+</div></div>`,'md');
+document.getElementById('mt-close').addEventListener('click',closeModal);
+document.getElementById('mt-cancel').addEventListener('click',closeModal);
+document.getElementById('mt-save').addEventListener('click',async()=>{
+const name=document.getElementById('mt-name').value.trim();
+const username=document.getElementById('mt-user').value.trim();
+const password=document.getElementById('mt-pass').value.trim();
+if(!name){showToast('Name is required','error');return}
+if(!username||!password){showToast('Username and password are required','error');return}
+const row={id:t?t.id:uid('T'),name,specialty:document.getElementById('mt-specialty').value.trim(),username,password,color:document.getElementById('mt-color').value,initials:document.getElementById('mt-initials').value.trim()||initials(name),active:true};
+const idx=DB.teachers.findIndex(x=>x.id===row.id);if(idx>=0)DB.teachers[idx]=row;else DB.teachers.push(row);
+closeModal();renderPage();showToast('Teacher saved!');buildQuickLogins();
+await apiPost('saveTeacher',{row});
+});
+if(typeof lucide!=='undefined')lucide.createIcons();
+}
+
+// ===================== EVENTS =====================
+function renderEvents(mc){
+const eventTypeColors={competition:'#7C3AED',recital:'#3B82F6',workshop:'#10B981',rehearsal:'#F59E0B',other:'#6B7280'};
+const events=DB.events.sort((a,b)=>a.date.localeCompare(b.date));
+const grouped={};events.forEach(e=>{const m=new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});if(!grouped[m])grouped[m]=[];grouped[m].push(e)});
+mc.innerHTML=`<div class="fade-in">
+<div class="page-header">
+<h1 style="font-size:24px;font-weight:700">Studio Events</h1>
+<button id="add-event-btn" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Add Event</button>
+</div>
+<div id="events-list">
+${events.length?Object.entries(grouped).map(([month,evts])=>`
+<h3 style="font-size:14px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px">${escH(month)}</h3>
+${evts.map(e=>{
+const col=e.color||eventTypeColors[e.type]||'#6B7280';
+const clsList=parseList(e.classIds).map(cid=>getClass(cid)).filter(Boolean);
+return`<div class="card" style="position:relative;margin-bottom:12px;border-left:4px solid ${col};padding-left:20px">
+<div class="hover-actions"><button class="edit-evt-btn" data-eid="${e.id}" title="Edit"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button><button class="del del-evt-btn" data-eid="${e.id}" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-right:60px">
+<div style="flex:1;min-width:0">
+<h4 style="font-size:16px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(e.name)}</h4>
+<div style="font-size:13px;color:#6b7280;margin-bottom:6px">${formatDate(e.date)}${e.endDate&&e.endDate!==e.date?' — '+formatDate(e.endDate):''}</div>
+${e.location?`<div style="font-size:13px;color:#6b7280;display:flex;align-items:center;gap:4px;margin-bottom:6px"><i data-lucide="map-pin" class="w-3.5 h-3.5" style="flex-shrink:0"></i><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(e.location)}</span></div>`:''}
+${e.description?`<p style="font-size:13px;color:#4b5563;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escH(e.description)}</p>`:''}
+${clsList.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${clsList.map(c=>`<span class="pill" style="background:#EDE9FE;color:#6D28D9;font-size:10px">${escH(c.name)}</span>`).join('')}</div>`:''}
+</div>
+<span class="event-type-badge" style="background:${col}22;color:${col}">${escH(e.type||'event')}</span>
+</div></div>`}).join('')}`).join(''):`<div class="empty-state"><i data-lucide="calendar-heart" class="w-12 h-12"></i><p style="font-size:15px;margin-top:8px">No events scheduled</p><p style="font-size:13px;color:#9ca3af">Add your first event!</p><button class="btn-primary" style="margin-top:12px" id="empty-add-evt"><i data-lucide="plus" class="w-4 h-4"></i> Add Event</button></div>`}
+</div>
+<footer style="padding:24px 0 8px;text-align:center"><p style="font-size:12px;color:#9ca3af">Made by Copilot</p></footer>
+</div>`;
+document.getElementById('add-event-btn').addEventListener('click',()=>showEventModal());
+const emptyBtn=document.getElementById('empty-add-evt');if(emptyBtn)emptyBtn.addEventListener('click',()=>showEventModal());
+document.querySelectorAll('.edit-evt-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();showEventModal(b.dataset.eid)}));
+document.querySelectorAll('.del-evt-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const ev=DB.events.find(x=>x.id===b.dataset.eid);openConfirm('Delete Event',`Delete "${ev?.name}"?`,async()=>{DB.events=DB.events.filter(x=>x.id!==b.dataset.eid);await apiPost('deleteEvent',{id:b.dataset.eid});renderPage();showToast('Event deleted')})}));
+if(typeof lucide!=='undefined')lucide.createIcons();
+}
+
+function showEventModal(editId){
+const ev=editId?DB.events.find(e=>e.id===editId):null;
+const typeColors={competition:'#7C3AED',recital:'#3B82F6',workshop:'#10B981',rehearsal:'#F59E0B',other:'#6B7280'};
+const evClasses=ev?parseList(ev.classIds):[];
+openModal(`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 style="font-size:18px;font-weight:700">${ev?'Edit Event':'Add New Event'}</h2><button id="me-close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:20px;padding:4px">✕</button></div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div><label class="form-label">Event Name *</label><input id="me-name" class="form-input" value="${ev?escH(ev.name):''}" placeholder="Event name"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div><label class="form-label">Type</label><select id="me-type" class="form-input"><option value="competition" ${ev&&ev.type==='competition'?'selected':''}>Competition</option><option value="recital" ${ev&&ev.type==='recital'?'selected':''}>Recital</option><option value="workshop" ${ev&&ev.type==='workshop'?'selected':''}>Workshop</option><option value="rehearsal" ${ev&&ev.type==='rehearsal'?'selected':''}>Rehearsal</option><option value="other" ${ev&&ev.type==='other'?'selected':''}>Other</option></select></div>
+<div><label class="form-label">Color</label><input id="me-color" type="color" class="form-input" value="${ev?ev.color||typeColors[ev.type]||'#6B7280':typeColors.competition}"></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div><label class="form-label">Start Date *</label><input id="me-date" type="date" class="form-input" value="${ev?ev.date:''}"></div>
+<div><label class="form-label">End Date</label><input id="me-edate" type="date" class="form-input" value="${ev?ev.endDate||'':''}"></div>
+</div>
+<div><label class="form-label">Location</label><input id="me-loc" class="form-input" value="${ev?escH(ev.location||''):''}" placeholder="e.g. Riverside Theatre"></div>
+<div><label class="form-label">Description</label><textarea id="me-desc" class="form-input" rows="3" placeholder="Event details…">${ev?escH(ev.description||''):''}</textarea></div>
+<div><label class="form-label">Involved Classes</label><div class="checkbox-group" id="me-classes">${DB.classes.filter(c=>c.active!==false).map(c=>`<label class="checkbox-item"><input type="checkbox" value="${c.id}" ${evClasses.includes(c.id)?'checked':''}>${escH(c.name)}</label>`).join('')}</div></div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+<button class="btn-secondary" id="me-cancel">Cancel</button>
+<button class="btn-primary" id="me-save"><i data-lucide="save" class="w-4 h-4"></i> Save Event</button>
+</div></div>`,'md');
+document.getElementById('me-close').addEventListener('click',closeModal);
+document.getElementById('me-cancel').addEventListener('click',closeModal);
+document.getElementById('me-type').addEventListener('change',function(){document.getElementById('me-color').value=typeColors[this.value]||'#6B7280'});
+document.getElementById('me-save').addEventListener('click',async()=>{
+const name=document.getElementById('me-name').value.trim();
+const date=document.getElementById('me-date').value;
+if(!name){showToast('Event name is required','error');return}
+if(!date){showToast('Start date is required','error');return}
+const classIds=Array.from(document.querySelectorAll('#me-classes input:checked')).map(i=>i.value).join(',');
+const row={id:ev?ev.id:uid('E'),name,date,endDate:document.getElementById('me-edate').value||date,type:document.getElementById('me-type').value,location:document.getElementById('me-loc').value.trim(),description:document.getElementById('me-desc').value.trim(),classIds,createdBy:currentUser.displayName,color:document.getElementById('me-color').value};
+const idx=DB.events.findIndex(x=>x.id===row.id);if(idx>=0)DB.events[idx]=row;else DB.events.push(row);
+closeModal();renderPage();showToast('Event saved!');
+await apiPost('saveEvent',{row});
+});
+if(typeof lucide!=='undefined')lucide.createIcons();
+}
+
+// ===================== GLOBAL EVENTS =====================
+document.getElementById('modal-root').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.getElementById('confirm-root').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'){closeModal();document.getElementById('confirm-root').classList.remove('open')}
+if(e.key==='Enter'){
+const modal=document.getElementById('modal-root');
+if(modal.classList.contains('open')){
+const saveBtn=modal.querySelector('.btn-primary');
+if(saveBtn&&document.activeElement?.tagName!=='TEXTAREA')saveBtn.click();
+}
+}
+});
+
+document.getElementById('login-btn').addEventListener('click',doLogin);
+document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+document.getElementById('login-user').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('login-pass').focus()});
+
+document.getElementById('logout-btn').addEventListener('click',()=>{
+sessionStorage.removeItem('studiotrack_session');currentUser=null;
+document.getElementById('app-shell').style.display='none';
+document.getElementById('login-screen').style.display='block';
+document.getElementById('login-user').value='';document.getElementById('login-pass').value='';
+document.getElementById('login-error').style.display='none';
+});
+
+document.getElementById('sidebar-toggle').addEventListener('click',()=>{
+const sb=document.getElementById('sidebar');const btn=document.getElementById('sidebar-toggle');
+sb.classList.toggle('collapsed');btn.textContent=sb.classList.contains('collapsed')?'›':'‹';
+});
+
+document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+
+    const sb = document.getElementById('sidebar');
+    const bd = document.getElementById('mobile-backdrop');
+
+    const opening = !sb.classList.contains('mobile-open');
+
+    if (opening) {
+
+        sb.classList.add('mobile-open');
+        bd.classList.add('show');
+
+    } else {
+
+        sb.classList.remove('mobile-open');
+        bd.classList.remove('show');
 
     }
 
 });
 
-</script>
+document.getElementById('mobile-backdrop').addEventListener('click',()=>{
+document.getElementById('sidebar').classList.remove('mobile-open');
+document.getElementById('mobile-backdrop').classList.remove('show');
+});
 
+// ===================== INIT =====================
+(async function init(){
+  try {
+    await apiGet();
+  } catch(e) {
+    return;
+  }
+  document.getElementById('loading-screen').style.display = 'none';
+  buildQuickLogins();
+  if(tryResumeSession()) { showApp(); } else { document.getElementById('login-screen').style.display = 'block'; }
+  if(typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') lucide.createIcons();
+})();
+
+
+</script>
 </body>
 </html>
