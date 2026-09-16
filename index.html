@@ -1032,7 +1032,7 @@ function showToast(
 
 async function fetchJson(
   url,
-  timeoutMilliseconds = 20000
+  timeoutMilliseconds = 60000
 ) {
   const controller = new AbortController();
 
@@ -1066,22 +1066,23 @@ async function fetchJson(
 
     try {
       return JSON.parse(text);
+
     } catch (error) {
       console.error(
-        "Non-JSON Apps Script response:",
+        "Apps Script returned this response:",
         text
       );
 
       throw new Error(
-        "Apps Script returned an invalid response. " +
-        "Check the deployment URL and permissions."
+        "Apps Script did not return valid booking data. " +
+        "Please check the deployment URL and permissions."
       );
     }
 
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error(
-        "The availability check took too long. " +
+        "Google Sheets did not respond within 60 seconds. " +
         "Please click View Available Tables again."
       );
     }
