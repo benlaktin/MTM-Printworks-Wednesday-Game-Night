@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,24 +10,27 @@
 <style>
 
 :root{
-    --mtm-red:#c8161d;
-    --mtm-card:#1b1b1b;
+    --red:#c8161d;
+    --dark:#111111;
+    --card:#1b1b1b;
+    --green:#16a34a;
 }
 
 *{
-    box-sizing:border-box;
     margin:0;
     padding:0;
+    box-sizing:border-box;
     font-family:Segoe UI,Tahoma,sans-serif;
 }
 
 body{
     background:#0f0f0f;
     color:white;
-    min-height:100vh;
 }
 
 .hero{
+    padding:60px 20px;
+    text-align:center;
     background:
     linear-gradient(
         rgba(0,0,0,.75),
@@ -36,45 +40,29 @@ body{
 
     background-size:cover;
     background-position:center;
-    padding:70px 20px;
-    text-align:center;
 }
 
 .hero h1{
     font-size:2.5rem;
+    margin-bottom:15px;
 }
 
 .hero p{
     max-width:900px;
-    margin:20px auto;
-    line-height:1.6;
-    color:#ddd;
+    margin:auto;
+    line-height:1.7;
 }
 
 .container{
-    width:min(800px,90%);
-    margin:-40px auto 50px;
+    width:min(900px,95%);
+    margin:25px auto;
 }
 
 .card{
-    background:var(--mtm-card);
+    background:var(--card);
+    padding:25px;
     border-radius:16px;
-    padding:30px;
-    box-shadow:0 10px 30px rgba(0,0,0,.4);
-}
-
-.notice{
-    background:#151515;
-    border-left:5px solid var(--mtm-red);
-    padding:15px;
     margin-bottom:25px;
-    border-radius:8px;
-    line-height:1.6;
-}
-
-h2{
-    color:var(--mtm-red);
-    margin-bottom:20px;
 }
 
 .form-group{
@@ -84,7 +72,6 @@ h2{
 label{
     display:block;
     margin-bottom:8px;
-    font-weight:600;
 }
 
 input,
@@ -99,35 +86,56 @@ select{
 
 button{
     width:100%;
-    padding:16px;
+    padding:14px;
+    background:var(--red);
     border:none;
     border-radius:10px;
-    background:var(--mtm-red);
     color:white;
-    font-weight:bold;
-    font-size:1rem;
     cursor:pointer;
+    font-weight:bold;
 }
 
 button:hover{
-    background:#e51d25;
+    background:#e11d25;
 }
 
 .success{
-    margin-top:20px;
     color:#4ade80;
-    text-align:center;
+    margin-top:15px;
 }
 
 .error{
-    margin-top:20px;
-    color:#ff6666;
-    text-align:center;
+    color:#ff6b6b;
+    margin-top:15px;
+}
+
+.availability-grid{
+    display:grid;
+    gap:15px;
+}
+
+.table-card{
+    padding:15px;
+    border-radius:10px;
+    background:#262626;
+}
+
+.available{
+    border-left:6px solid var(--green);
+}
+
+.booked{
+    border-left:6px solid var(--red);
+}
+
+.status{
+    margin-top:8px;
+    color:#ccc;
 }
 
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="hero">
@@ -135,11 +143,10 @@ button:hover{
 <h1>MTM Printworks Open Games Night</h1>
 
 <p>
-MTM Printworks has open games night by sign up almost every Wednesday Night!
+MTM Printworks has open games night by sign up almost every Wednesday Night.
 Tables are free to book and game mats and terrain are available for use.
-Games may start anytime after 4:30 PM but must start by 7:00 PM.
+Games can begin after 4:30 PM and must start by 7:00 PM.
 Last turn is called at 9:45 PM and gaming ends at 10:00 PM.
-If there are no sign ups, the store closes at its regular 6:00 PM time.
 </p>
 
 </div>
@@ -148,11 +155,7 @@ If there are no sign ups, the store closes at its regular 6:00 PM time.
 
 <div class="card">
 
-<div class="notice">
-Choose a Wednesday evening gaming session and reserve your table.
-</div>
-
-<h2>Sign Up</h2>
+<h2>Reserve A Table</h2>
 
 <form id="signupForm">
 
@@ -172,7 +175,7 @@ Choose a Wednesday evening gaming session and reserve your table.
 </div>
 
 <div class="form-group">
-<label>Names</label>
+<label>Name(s)</label>
 <input type="text" id="names" required>
 </div>
 
@@ -189,7 +192,7 @@ Choose a Wednesday evening gaming session and reserve your table.
 <label>Game</label>
 <select id="game">
 <option>MESBG</option>
-<option>Warhammer 40k</option>
+<option>Warhammer 40K</option>
 <option>Warhammer Age of Sigmar</option>
 <option>Warhammer Old World</option>
 <option>Star Wars Legion</option>
@@ -201,16 +204,75 @@ Choose a Wednesday evening gaming session and reserve your table.
 
 <div class="form-group">
 <label>Time</label>
-<select id="time"></select>
+<select id="time">
+<option>4:30 PM</option>
+<option>4:45 PM</option>
+<option>5:00 PM</option>
+<option>5:15 PM</option>
+<option>5:30 PM</option>
+<option>5:45 PM</option>
+<option>6:00 PM</option>
+<option>6:15 PM</option>
+<option>6:30 PM</option>
+<option>6:45 PM</option>
+<option>7:00 PM</option>
+</select>
 </div>
 
 <button type="submit">
+
 Reserve Table
+
 </button>
 
 <div id="message"></div>
 
 </form>
+
+</div>
+
+<div class="card">
+
+<h2>Table Availability</h2>
+
+<div class="form-group">
+<label>Select Date</label>
+<input type="date" id="availabilityDate">
+</div>
+
+<div
+id="tableAvailability"
+class="availability-grid">
+
+<div class="table-card available">
+<strong>Table 1</strong>
+<div class="status">
+Available for booking
+</div>
+</div>
+
+<div class="table-card available">
+<strong>Table 2</strong>
+<div class="status">
+Available for booking
+</div>
+</div>
+
+<div class="table-card available">
+<strong>Table 3</strong>
+<div class="status">
+Available for booking
+</div>
+</div>
+
+<div class="table-card available">
+<strong>Table 4</strong>
+<div class="status">
+Available for booking
+</div>
+</div>
+
+</div>
 
 </div>
 
@@ -221,55 +283,21 @@ Reserve Table
 const APPS_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxsiGD7uabX93clkq3Y6MDnngVadcEq3fofS9jdy1nD9lkSG_rdyybkU0MCopbs04JYJg/exec";
 
-function generateTimes(){
-
-    const select = document.getElementById("time");
-
-    for(let hour=16; hour<=19; hour++){
-
-        for(let minute=0; minute<60; minute+=15){
-
-            if(hour===16 && minute<30) continue;
-            if(hour===19 && minute>0) continue;
-
-            const option =
-            document.createElement("option");
-
-            const date = new Date();
-
-            date.setHours(hour);
-            date.setMinutes(minute);
-
-            const timeString =
-            date.toLocaleTimeString(
-                "en-CA",
-                {
-                    hour:"numeric",
-                    minute:"2-digit"
-                }
-            );
-
-            option.value = timeString;
-            option.textContent = timeString;
-
-            select.appendChild(option);
-        }
-    }
-}
-
-generateTimes();
-
 function isWednesday(dateString){
 
-    const parts = dateString.split("-");
+    if(!dateString) return false;
 
-    const d = new Date(
+    const parts =
+    dateString.split("-");
+
+    const date =
+    new Date(
         parseInt(parts[0]),
         parseInt(parts[1])-1,
         parseInt(parts[2])
     );
 
-    return d.getDay() === 3;
+    return date.getDay() === 3;
 }
 
 document
@@ -278,13 +306,16 @@ document
 
     if(
         e.target.value &&
-        !isWednesday(e.target.value)
+        !isWednesday(
+            e.target.value
+        )
     ){
+
         alert(
             "Please select a Wednesday."
         );
 
-        e.target.value = "";
+        e.target.value="";
     }
 
 });
@@ -296,16 +327,6 @@ document
 async function(e){
 
     e.preventDefault();
-
-    const selectedDate =
-    document.getElementById("date").value;
-
-    if(!isWednesday(selectedDate)){
-        alert(
-            "Bookings are only available on Wednesdays."
-        );
-        return;
-    }
 
     const data = {
 
@@ -326,43 +347,110 @@ async function(e){
 
         Time:
         document.getElementById("time").value
+
     };
 
     const msg =
     document.getElementById("message");
 
     msg.className = "";
-    msg.innerHTML = "Saving...";
 
-try {
-
-    await fetch(
-        APPS_SCRIPT_URL,
-        {
-            method:"POST",
-            mode:"no-cors",
-            body:JSON.stringify(data)
-        }
-    );
-
-    msg.className = "success";
     msg.innerHTML =
+    "Saving...";
+
+    try{
+
+        await fetch(
+            APPS_SCRIPT_URL,
+            {
+                method:"POST",
+                mode:"no-cors",
+                body:JSON.stringify(data)
+            }
+        );
+
+        msg.className =
+        "success";
+
+        msg.innerHTML =
         "✅ Signup submitted successfully.";
 
-    document
-        .getElementById("signupForm")
-        .reset();
+    }
+    catch(err){
 
-}
-catch(err){
+        msg.className =
+        "error";
 
-    msg.className = "error";
-    msg.innerHTML =
-        "❌ Error: " + err.message;
+        msg.innerHTML =
+        "❌ " + err.message;
 
-}
+    }
 
 });
+
+document
+.getElementById("availabilityDate")
+.addEventListener(
+"change",
+loadAvailability
+);
+
+async function loadAvailability(){
+
+    const date =
+    document
+    .getElementById(
+        "availabilityDate"
+    )
+    .value;
+
+    if(!date) return;
+
+    const container =
+    document.getElementById(
+        "tableAvailability"
+    );
+
+    container.innerHTML =
+    `
+    <div class="table-card available">
+        <strong>Table 1</strong>
+        <div class="status">
+            Available for booking
+        </div>
+    </div>
+
+    <div class="table-card available">
+        <strong>Table 2</strong>
+        <div class="status">
+            Available for booking
+        </div>
+    </div>
+
+    <div class="table-card available">
+        <strong>Table 3</strong>
+        <div class="status">
+            Available for booking
+        </div>
+    </div>
+
+    <div class="table-card available">
+        <strong>Table 4</strong>
+        <div class="status">
+            Available for booking
+        </div>
+    </div>
+    `;
+
+    /*
+      NEXT STEP:
+      Replace this section with a
+      fetch() call to Apps Script
+      and populate the table cards
+      from Google Sheets results.
+    */
+
+}
 
 </script>
 
