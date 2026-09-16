@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
 <meta
   name="viewport"
   content="width=device-width, initial-scale=1.0"
@@ -42,11 +43,7 @@ body {
   min-height: 100vh;
   background: var(--page-bg);
   color: var(--text);
-  font-family:
-    Inter,
-    "Segoe UI",
-    Arial,
-    sans-serif;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
 
 button,
@@ -129,6 +126,7 @@ button {
   line-height: 1.6;
 }
 
+.search-grid,
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -171,17 +169,15 @@ button {
   line-height: 1.4;
 }
 
-.primary-button {
+.primary-button,
+.secondary-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 50px;
   padding: 12px 18px;
-  border: 0;
   border-radius: 11px;
-  background: var(--primary);
-  color: #ffffff;
   font-weight: 800;
   cursor: pointer;
   transition:
@@ -190,14 +186,67 @@ button {
     transform 0.15s ease;
 }
 
+.primary-button {
+  border: 0;
+  background: var(--primary);
+  color: #ffffff;
+}
+
 .primary-button:hover:not(:disabled) {
   background: var(--primary-dark);
   transform: translateY(-1px);
 }
 
-.primary-button:disabled {
+.secondary-button {
+  border: 1.5px solid var(--primary);
+  background: #ffffff;
+  color: var(--primary-dark);
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: var(--primary-light);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
   opacity: 0.58;
   cursor: not-allowed;
+  transform: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.reveal-section {
+  animation: revealSection 0.28s ease;
+}
+
+@keyframes revealSection {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-divider {
+  height: 1px;
+  margin: 27px 0;
+  background: var(--border);
+}
+
+.selected-request {
+  margin-bottom: 21px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  color: #006b6e;
+  line-height: 1.55;
 }
 
 .message {
@@ -428,6 +477,7 @@ button {
     padding-top: 13px;
   }
 
+  .search-grid,
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -477,12 +527,11 @@ button {
   <section class="card">
 
     <div class="card-header">
-      <h2>Reserve a table</h2>
+      <h2>Find an available table</h2>
 
       <p>
-        Select a Wednesday and start time. The available-table
-        list will update automatically using current Google
-        Sheets reservations.
+        Select a Wednesday and start time, then click
+        <strong>View Available Tables</strong>.
       </p>
     </div>
 
@@ -494,140 +543,175 @@ button {
       its regular 6:00 PM time.
     </div>
 
-    <form id="bookingForm" novalidate>
+    <div class="search-grid">
 
-      <div class="form-grid">
+      <div class="form-group">
+        <label for="date">Wednesday date</label>
 
-        <div class="form-group">
-          <label for="date">Wednesday date</label>
+        <input
+          type="date"
+          id="date"
+          required
+        >
 
-          <input
-            type="date"
-            id="date"
-            required
-          >
-
-          <div class="form-help">
-            Past and future Wednesdays can be viewed.
-          </div>
+        <div class="form-help">
+          Past and future Wednesdays can be viewed.
         </div>
-
-        <div class="form-group">
-          <label for="time">Start time</label>
-
-          <select id="time" required>
-            <option value="16:30">4:30 PM</option>
-            <option value="16:45">4:45 PM</option>
-            <option value="17:00">5:00 PM</option>
-            <option value="17:15">5:15 PM</option>
-            <option value="17:30">5:30 PM</option>
-            <option value="17:45">5:45 PM</option>
-            <option value="18:00">6:00 PM</option>
-            <option value="18:15">6:15 PM</option>
-            <option value="18:30">6:30 PM</option>
-            <option value="18:45">6:45 PM</option>
-            <option value="19:00">7:00 PM</option>
-          </select>
-
-          <div class="form-help">
-            The calculated reservation end time appears below.
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="table">Available table</label>
-
-          <select id="table" required disabled>
-            <option value="">
-              Select a Wednesday to load tables
-            </option>
-          </select>
-
-          <div
-            id="selectedTimeDescription"
-            class="form-help"
-          ></div>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="names">Player name or player names</label>
-
-          <input
-            type="text"
-            id="names"
-            maxlength="150"
-            placeholder="Example: Ben and Alex"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="tableSize">Table size</label>
-
-          <select id="tableSize" required>
-            <option value="4'x4'">4'x4'</option>
-            <option value="4'x6'">4'x6'</option>
-            <option value="4'x8'">4'x8'</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="game">Game</label>
-
-          <select id="game" required>
-            <option value="MESBG">MESBG</option>
-            <option value="Warhammer 40k">
-              Warhammer 40k
-            </option>
-            <option value="Warhammer Age of Sigmar">
-              Warhammer Age of Sigmar
-            </option>
-            <option value="Warhammer Old World">
-              Warhammer Old World
-            </option>
-            <option value="Star Wars Legion">
-              Star Wars Legion
-            </option>
-            <option value="SAGA">SAGA</option>
-            <option value="Bolt Action">Bolt Action</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div class="full-width">
-          <button
-            type="submit"
-            id="submitButton"
-            class="primary-button"
-            disabled
-          >
-            Reserve Table
-          </button>
-
-          <div
-            id="formMessage"
-            class="message"
-            role="status"
-            aria-live="polite"
-          ></div>
-        </div>
-
       </div>
 
-    </form>
+      <div class="form-group">
+        <label for="time">Start time</label>
+
+        <select id="time" required>
+          <option value="16:30">4:30 PM</option>
+          <option value="16:45">4:45 PM</option>
+          <option value="17:00">5:00 PM</option>
+          <option value="17:15">5:15 PM</option>
+          <option value="17:30">5:30 PM</option>
+          <option value="17:45">5:45 PM</option>
+          <option value="18:00">6:00 PM</option>
+          <option value="18:15">6:15 PM</option>
+          <option value="18:30">6:30 PM</option>
+          <option value="18:45">6:45 PM</option>
+          <option value="19:00">7:00 PM</option>
+        </select>
+
+        <div class="form-help">
+          Each reservation lasts 2.5 hours.
+        </div>
+      </div>
+
+      <div class="full-width">
+        <button
+          type="button"
+          id="viewTablesButton"
+          class="primary-button"
+        >
+          View Available Tables
+        </button>
+
+        <div
+          id="searchMessage"
+          class="message"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </div>
+
+    </div>
+
+    <div
+      id="reservationSection"
+      class="hidden"
+    >
+
+      <div class="section-divider"></div>
+
+      <div
+        id="selectedRequest"
+        class="selected-request"
+      ></div>
+
+      <form id="bookingForm" novalidate>
+
+        <div class="form-grid">
+
+          <div class="form-group full-width">
+            <label for="table">Available table</label>
+
+            <select id="table" required></select>
+
+            <div class="form-help">
+              Only tables available for the selected 2.5-hour
+              period are listed.
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="names">
+              Player name or player names
+            </label>
+
+            <input
+              type="text"
+              id="names"
+              maxlength="150"
+              placeholder="Example: Ben and Alex"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="tableSize">Table size</label>
+
+            <select id="tableSize" required>
+              <option value="4'x4'">4'x4'</option>
+              <option value="4'x6'">4'x6'</option>
+              <option value="4'x8'">4'x8'</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="game">Game</label>
+
+            <select id="game" required>
+              <option value="MESBG">MESBG</option>
+              <option value="Warhammer 40k">
+                Warhammer 40k
+              </option>
+              <option value="Warhammer Age of Sigmar">
+                Warhammer Age of Sigmar
+              </option>
+              <option value="Warhammer Old World">
+                Warhammer Old World
+              </option>
+              <option value="Star Wars Legion">
+                Star Wars Legion
+              </option>
+              <option value="SAGA">SAGA</option>
+              <option value="Bolt Action">
+                Bolt Action
+              </option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="full-width">
+            <button
+              type="submit"
+              id="submitButton"
+              class="primary-button"
+            >
+              Reserve Table
+            </button>
+
+            <div
+              id="formMessage"
+              class="message"
+              role="status"
+              aria-live="polite"
+            ></div>
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
 
   </section>
 
-  <section class="card">
+  <section
+    id="availabilitySection"
+    class="card hidden"
+  >
 
     <div class="availability-heading">
 
       <div>
         <h2>Table availability</h2>
 
-        <p id="availabilityDescription">
-          Select a Wednesday and time above.
-        </p>
+        <p id="availabilityDescription"></p>
       </div>
 
       <button
@@ -644,11 +728,7 @@ button {
       id="availabilityList"
       class="availability-list"
       aria-live="polite"
-    >
-      <div class="table-card loading-card">
-        Select a Wednesday to view all four tables.
-      </div>
-    </div>
+    ></div>
 
   </section>
 
@@ -661,6 +741,10 @@ button {
 <script>
 "use strict";
 
+/*
+ * Paste the Apps Script Web App URL ending in /exec below.
+ * Do not use the /dev URL.
+ */
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxj35tfxz4AEXaSJOfg1Aed25MPaHqOi4WF8pDH3u1uKbtLvJUddowvhoiidSfR7JJLIQ/exec";
 
@@ -673,14 +757,29 @@ const TABLES = [
 
 const BOOKING_LENGTH_MINUTES = 150;
 
-const bookingForm =
-  document.getElementById("bookingForm");
-
 const dateInput =
   document.getElementById("date");
 
 const timeSelect =
   document.getElementById("time");
+
+const viewTablesButton =
+  document.getElementById("viewTablesButton");
+
+const searchMessage =
+  document.getElementById("searchMessage");
+
+const reservationSection =
+  document.getElementById("reservationSection");
+
+const availabilitySection =
+  document.getElementById("availabilitySection");
+
+const selectedRequest =
+  document.getElementById("selectedRequest");
+
+const bookingForm =
+  document.getElementById("bookingForm");
 
 const tableSelect =
   document.getElementById("table");
@@ -706,14 +805,11 @@ const availabilityList =
 const availabilityDescription =
   document.getElementById("availabilityDescription");
 
-const selectedTimeDescription =
-  document.getElementById("selectedTimeDescription");
-
 const formMessage =
   document.getElementById("formMessage");
 
 let currentBookings = [];
-let availabilityRequestNumber = 0;
+let resultsLoaded = false;
 
 
 function validateScriptUrl() {
@@ -789,7 +885,9 @@ function storageTimeToMinutes(timeString) {
   }
 
   match =
-    text.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+    text.match(
+      /^(\d{1,2}):(\d{2})\s*(AM|PM)$/
+    );
 
   if (!match) {
     return null;
@@ -886,24 +984,32 @@ function intervalsOverlap(
 }
 
 
-function showFormMessage(message, type) {
-  formMessage.textContent = message;
-  formMessage.className =
+function setMessage(
+  element,
+  message,
+  type
+) {
+  element.textContent = message;
+  element.className =
     "message show " + type;
 }
 
 
-function clearFormMessage() {
-  formMessage.textContent = "";
-  formMessage.className = "message";
+function clearMessage(element) {
+  element.textContent = "";
+  element.className = "message";
 }
 
 
-function showToast(message, type = "success") {
+function showToast(
+  message,
+  type = "success"
+) {
   const container =
     document.getElementById("toastContainer");
 
-  const toast = document.createElement("div");
+  const toast =
+    document.createElement("div");
 
   toast.className = "toast " + type;
   toast.textContent = message;
@@ -924,12 +1030,18 @@ function showToast(message, type = "success") {
 }
 
 
-async function fetchJson(url, timeoutMilliseconds = 15000) {
+async function fetchJson(
+  url,
+  timeoutMilliseconds = 20000
+) {
   const controller = new AbortController();
 
-  const timeoutId = window.setTimeout(function() {
-    controller.abort();
-  }, timeoutMilliseconds);
+  const timeoutId = window.setTimeout(
+    function() {
+      controller.abort();
+    },
+    timeoutMilliseconds
+  );
 
   try {
     const response = await fetch(
@@ -956,20 +1068,21 @@ async function fetchJson(url, timeoutMilliseconds = 15000) {
       return JSON.parse(text);
     } catch (error) {
       console.error(
-        "Non-JSON server response:",
+        "Non-JSON Apps Script response:",
         text
       );
 
       throw new Error(
-        "The Apps Script returned an invalid response. " +
-        "Confirm that the current deployment is public."
+        "Apps Script returned an invalid response. " +
+        "Check the deployment URL and permissions."
       );
     }
 
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error(
-        "The request took too long. Please try again."
+        "The availability check took too long. " +
+        "Please click View Available Tables again."
       );
     }
 
@@ -981,22 +1094,22 @@ async function fetchJson(url, timeoutMilliseconds = 15000) {
 }
 
 
-function createApiUrl(action, parameters = {}) {
+function createApiUrl(
+  action,
+  parameters = {}
+) {
   const url = new URL(SCRIPT_URL);
 
   url.searchParams.set("action", action);
 
   Object.entries(parameters).forEach(
     function(entry) {
-      const key = entry[0];
-      const value = entry[1];
-
       url.searchParams.set(
-        key,
-        value === undefined ||
-        value === null
+        entry[0],
+        entry[1] === undefined ||
+        entry[1] === null
           ? ""
-          : String(value)
+          : String(entry[1])
       );
     }
   );
@@ -1017,7 +1130,41 @@ function getSelectedStartMinutes() {
 }
 
 
-function bookingConflictsWithSelection(booking) {
+function getBookingStart(booking) {
+  if (
+    Number.isFinite(
+      Number(booking.startMinutes)
+    )
+  ) {
+    return Number(booking.startMinutes);
+  }
+
+  return storageTimeToMinutes(
+    booking.time
+  );
+}
+
+
+function getBookingEnd(booking) {
+  if (
+    Number.isFinite(
+      Number(booking.endMinutes)
+    )
+  ) {
+    return Number(booking.endMinutes);
+  }
+
+  const start = getBookingStart(booking);
+
+  return start === null
+    ? null
+    : start + BOOKING_LENGTH_MINUTES;
+}
+
+
+function bookingConflictsWithSelection(
+  booking
+) {
   const selectedStart =
     getSelectedStartMinutes();
 
@@ -1029,19 +1176,10 @@ function bookingConflictsWithSelection(booking) {
     selectedStart + BOOKING_LENGTH_MINUTES;
 
   const existingStart =
-    Number.isFinite(Number(booking.startMinutes))
-      ? Number(booking.startMinutes)
-      : storageTimeToMinutes(booking.time);
+    getBookingStart(booking);
 
   const existingEnd =
-    Number.isFinite(Number(booking.endMinutes))
-      ? Number(booking.endMinutes)
-      : (
-          existingStart === null
-            ? null
-            : existingStart +
-              BOOKING_LENGTH_MINUTES
-        );
+    getBookingEnd(booking);
 
   if (
     existingStart === null ||
@@ -1059,4 +1197,517 @@ function bookingConflictsWithSelection(booking) {
 }
 
 
+function hideLoadedResults() {
+  resultsLoaded = false;
+
+  reservationSection.classList.add("hidden");
+  availabilitySection.classList.add("hidden");
+
+  currentBookings = [];
+
+  tableSelect.innerHTML = "";
+  clearMessage(searchMessage);
+  clearMessage(formMessage);
+}
+
+
 function renderAvailability() {
+  const selectedStart =
+    getSelectedStartMinutes();
+
+  const selectedEnd =
+    selectedStart + BOOKING_LENGTH_MINUTES;
+
+  selectedRequest.innerHTML =
+    "<strong>Requested reservation:</strong> " +
+    escapeHtml(
+      formatDateForDisplay(dateInput.value)
+    ) +
+    ", " +
+    escapeHtml(formatMinutes(selectedStart)) +
+    " to " +
+    escapeHtml(formatMinutes(selectedEnd)) +
+    ".";
+
+  availabilityDescription.textContent =
+    formatDateForDisplay(dateInput.value) +
+    ", requested time " +
+    formatMinutes(selectedStart) +
+    " to " +
+    formatMinutes(selectedEnd) +
+    ".";
+
+  tableSelect.innerHTML = "";
+
+  const availableTables = [];
+
+  let html = "";
+
+  TABLES.forEach(function(tableName) {
+    const tableBookings =
+      currentBookings
+        .filter(function(booking) {
+          return booking.table === tableName;
+        })
+        .sort(function(a, b) {
+          return (
+            (getBookingStart(a) || 0) -
+            (getBookingStart(b) || 0)
+          );
+        });
+
+    const conflictingBooking =
+      tableBookings.find(
+        bookingConflictsWithSelection
+      );
+
+    const availableAtSelectedTime =
+      !conflictingBooking;
+
+    if (availableAtSelectedTime) {
+      availableTables.push(tableName);
+
+      const option =
+        document.createElement("option");
+
+      option.value = tableName;
+      option.textContent = tableName;
+
+      tableSelect.appendChild(option);
+    }
+
+    let cardClass = "available";
+    let badgeClass = "available";
+    let badgeText = "Available";
+
+    if (conflictingBooking) {
+      cardClass = "unavailable";
+      badgeClass = "unavailable";
+      badgeText =
+        "Unavailable at selected time";
+
+    } else if (tableBookings.length > 0) {
+      cardClass = "partial";
+      badgeClass = "partial";
+      badgeText =
+        "Available at selected time";
+    }
+
+    let bookingHtml = "";
+
+    if (tableBookings.length === 0) {
+      bookingHtml =
+        '<div class="empty-note">' +
+        "This table is free for the full evening." +
+        "</div>";
+
+    } else {
+      bookingHtml =
+        '<div class="booking-list">' +
+        tableBookings.map(function(booking) {
+          const start =
+            getBookingStart(booking);
+
+          const end =
+            getBookingEnd(booking);
+
+          if (
+            start === null ||
+            end === null
+          ) {
+            return "";
+          }
+
+          return (
+            '<div class="booking-entry">' +
+              '<div class="booking-name">' +
+                escapeHtml(booking.names) +
+              "</div>" +
+              '<div class="booking-detail">' +
+                escapeHtml(booking.game) +
+                (
+                  booking.tableSize
+                    ? " · " +
+                      escapeHtml(
+                        booking.tableSize
+                      )
+                    : ""
+                ) +
+              "</div>" +
+              '<div class="booking-detail">' +
+                formatMinutes(start) +
+                " to " +
+                formatMinutes(end) +
+              "</div>" +
+            "</div>"
+          );
+        }).join("") +
+        "</div>";
+    }
+
+    html +=
+      '<article class="table-card ' +
+      cardClass +
+      '">' +
+        '<div class="table-title-row">' +
+          '<div class="table-title">' +
+            escapeHtml(tableName) +
+          "</div>" +
+          '<span class="status-badge ' +
+          badgeClass +
+          '">' +
+            badgeText +
+          "</span>" +
+        "</div>" +
+        bookingHtml +
+      "</article>";
+  });
+
+  availabilityList.innerHTML = html;
+
+  if (availableTables.length === 0) {
+    const option =
+      document.createElement("option");
+
+    option.value = "";
+    option.textContent =
+      "No tables available at this time";
+
+    tableSelect.appendChild(option);
+    tableSelect.disabled = true;
+    submitButton.disabled = true;
+
+    setMessage(
+      formMessage,
+      "All four tables conflict with the selected time.",
+      "error"
+    );
+
+  } else {
+    tableSelect.disabled = false;
+    submitButton.disabled = false;
+    clearMessage(formMessage);
+  }
+
+  reservationSection.classList.remove(
+    "hidden"
+  );
+
+  availabilitySection.classList.remove(
+    "hidden"
+  );
+
+  reservationSection.classList.add(
+    "reveal-section"
+  );
+
+  availabilitySection.classList.add(
+    "reveal-section"
+  );
+
+  resultsLoaded = true;
+}
+
+
+async function loadAvailability() {
+  clearMessage(searchMessage);
+  clearMessage(formMessage);
+
+  if (!validateScriptUrl()) {
+    setMessage(
+      searchMessage,
+      "Replace the Apps Script URL placeholder in index.html.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (!dateInput.value) {
+    setMessage(
+      searchMessage,
+      "Please select a date.",
+      "error"
+    );
+
+    dateInput.focus();
+    return;
+  }
+
+  if (!isWednesday(dateInput.value)) {
+    setMessage(
+      searchMessage,
+      "Please select a Wednesday.",
+      "error"
+    );
+
+    dateInput.focus();
+    return;
+  }
+
+  viewTablesButton.disabled = true;
+  viewTablesButton.textContent =
+    "Checking Available Tables...";
+
+  setMessage(
+    searchMessage,
+    "Checking Google Sheets for current reservations.",
+    "info"
+  );
+
+  availabilitySection.classList.remove(
+    "hidden"
+  );
+
+  availabilityList.innerHTML =
+    '<div class="table-card loading-card">' +
+      '<div class="loading-row">' +
+        '<div class="spinner"></div>' +
+        "<div>Checking table availability...</div>" +
+      "</div>" +
+    "</div>";
+
+  try {
+    const result = await fetchJson(
+      createApiUrl(
+        "getBookings",
+        {
+          date: dateInput.value
+        }
+      )
+    );
+
+    if (!result.ok) {
+      throw new Error(
+        result.error ||
+        "Availability could not be loaded."
+      );
+    }
+
+    currentBookings =
+      Array.isArray(result.bookings)
+        ? result.bookings
+        : [];
+
+    clearMessage(searchMessage);
+    renderAvailability();
+
+    availabilitySection.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    reservationSection.classList.add(
+      "hidden"
+    );
+
+    availabilityList.innerHTML =
+      '<div class="table-card unavailable">' +
+        "<strong>Could not load availability.</strong>" +
+        '<div class="booking-detail">' +
+          escapeHtml(error.message) +
+        "</div>" +
+      "</div>";
+
+    setMessage(
+      searchMessage,
+      error.message,
+      "error"
+    );
+
+    showToast(
+      "Could not load table availability.",
+      "error"
+    );
+
+  } finally {
+    viewTablesButton.disabled = false;
+    viewTablesButton.textContent =
+      "View Available Tables";
+  }
+}
+
+
+viewTablesButton.addEventListener(
+  "click",
+  loadAvailability
+);
+
+
+dateInput.addEventListener(
+  "change",
+  hideLoadedResults
+);
+
+
+timeSelect.addEventListener(
+  "change",
+  hideLoadedResults
+);
+
+
+refreshButton.addEventListener(
+  "click",
+  loadAvailability
+);
+
+
+bookingForm.addEventListener(
+  "submit",
+  async function(event) {
+    event.preventDefault();
+    clearMessage(formMessage);
+
+    if (!resultsLoaded) {
+      setMessage(
+        formMessage,
+        "Click View Available Tables before reserving.",
+        "error"
+      );
+
+      return;
+    }
+
+    if (!tableSelect.value) {
+      setMessage(
+        formMessage,
+        "No available table is selected.",
+        "error"
+      );
+
+      tableSelect.focus();
+      return;
+    }
+
+    if (!namesInput.value.trim()) {
+      setMessage(
+        formMessage,
+        "Please enter the player names.",
+        "error"
+      );
+
+      namesInput.focus();
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent =
+      "Checking and Saving...";
+
+    setMessage(
+      formMessage,
+      "Confirming the table is still available.",
+      "info"
+    );
+
+    try {
+      const result = await fetchJson(
+        createApiUrl(
+          "saveBooking",
+          {
+            date: dateInput.value,
+            table: tableSelect.value,
+            names: namesInput.value.trim(),
+            tableSize:
+              tableSizeSelect.value,
+            game: gameSelect.value,
+            time: timeSelect.value
+          }
+        ),
+        20000
+      );
+
+      if (!result.ok) {
+        throw new Error(
+          result.error ||
+          "The reservation could not be saved."
+        );
+      }
+
+      setMessage(
+        formMessage,
+        result.message ||
+        "Reservation submitted successfully.",
+        "success"
+      );
+
+      showToast(
+        "Reservation submitted successfully.",
+        "success"
+      );
+
+      namesInput.value = "";
+
+      /*
+       * Reload availability but preserve the success message.
+       */
+      const successMessage =
+        result.message ||
+        "Reservation submitted successfully.";
+
+      await loadAvailability();
+
+      setMessage(
+        formMessage,
+        successMessage,
+        "success"
+      );
+
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        formMessage,
+        error.message,
+        "error"
+      );
+
+      showToast(
+        error.message,
+        "error"
+      );
+
+      /*
+       * Reload because another person may have booked
+       * the table after this user viewed availability.
+       */
+      try {
+        await loadAvailability();
+      } catch (refreshError) {
+        console.error(refreshError);
+      }
+
+      setMessage(
+        formMessage,
+        error.message,
+        "error"
+      );
+
+    } finally {
+      submitButton.textContent =
+        "Reserve Table";
+
+      submitButton.disabled =
+        tableSelect.disabled ||
+        !tableSelect.value;
+    }
+  }
+);
+
+
+(function initializePage() {
+  if (!validateScriptUrl()) {
+    setMessage(
+      searchMessage,
+      "Setup required: replace the Apps Script URL placeholder.",
+      "error"
+    );
+  }
+})();
+</script>
+
+</body>
+</html>
