@@ -266,36 +266,65 @@ loadAvailability
 
 function toMinutes(time){
 
-    const parts =
-    time.match(
-    /(\d+):(\d+)\s*(AM|PM)/i
+    console.log(
+        "Converting Time:",
+        time
     );
 
+    if(!time){
+        return 0;
+    }
+
+    time = String(time).trim();
+
+    time = time
+        .replace("a.m.", "AM")
+        .replace("p.m.", "PM")
+        .replace("a.m", "AM")
+        .replace("p.m", "PM");
+
+    const parts =
+    time.match(
+        /(\d+):(\d+)\s*(AM|PM)/i
+    );
+
+    if(!parts){
+
+        console.error(
+            "Invalid Time Format:",
+            time
+        );
+
+        return 0;
+    }
+
     let hour =
-    parseInt(parts[1]);
+        parseInt(parts[1]);
 
     const minute =
-    parseInt(parts[2]);
+        parseInt(parts[2]);
 
     const ampm =
-    parts[3];
+        parts[3].toUpperCase();
 
     if(
-        ampm.toUpperCase() === "PM"
-        && hour !== 12
+        ampm === "PM" &&
+        hour !== 12
     ){
         hour += 12;
     }
 
     if(
-        ampm.toUpperCase() === "AM"
-        && hour === 12
+        ampm === "AM" &&
+        hour === 12
     ){
         hour = 0;
     }
 
     return hour * 60 + minute;
+
 }
+
 
 function formatTime(minutes){
 
