@@ -10,9 +10,7 @@
 
 :root{
     --mtm-red:#c8161d;
-    --mtm-dark:#111;
     --mtm-card:#1b1b1b;
-    --mtm-light:#efefef;
 }
 
 *{
@@ -36,15 +34,14 @@ body{
     ),
     url("https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1400&q=80");
 
-    background-size: cover;
-    background-position: center;
-    padding: 70px 20px;
-    text-align: center;
+    background-size:cover;
+    background-position:center;
+    padding:70px 20px;
+    text-align:center;
 }
 
 .hero h1{
     font-size:2.5rem;
-    color:white;
 }
 
 .hero p{
@@ -61,10 +58,18 @@ body{
 
 .card{
     background:var(--mtm-card);
-    border:1px solid rgba(255,255,255,.08);
     border-radius:16px;
     padding:30px;
     box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+.notice{
+    background:#151515;
+    border-left:5px solid var(--mtm-red);
+    padding:15px;
+    margin-bottom:25px;
+    border-radius:8px;
+    line-height:1.6;
 }
 
 h2{
@@ -99,10 +104,9 @@ button{
     border-radius:10px;
     background:var(--mtm-red);
     color:white;
-    font-size:1rem;
     font-weight:bold;
+    font-size:1rem;
     cursor:pointer;
-    transition:.3s;
 }
 
 button:hover{
@@ -111,27 +115,19 @@ button:hover{
 
 .success{
     margin-top:20px;
-    text-align:center;
     color:#4ade80;
+    text-align:center;
 }
 
 .error{
     margin-top:20px;
-    text-align:center;
     color:#ff6666;
-}
-
-.notice{
-    background:#151515;
-    border-left:5px solid var(--mtm-red);
-    padding:15px;
-    margin-bottom:25px;
-    border-radius:8px;
-    line-height:1.6;
+    text-align:center;
 }
 
 </style>
 </head>
+
 <body>
 
 <div class="hero">
@@ -168,10 +164,10 @@ Choose a Wednesday evening gaming session and reserve your table.
 <div class="form-group">
 <label>Table</label>
 <select id="table">
-        <option>Table 1</option>
-        <option>Table 2</option>
-        <option>Table 3</option>
-        <option>Table 4</option>
+<option>Table 1</option>
+<option>Table 2</option>
+<option>Table 3</option>
+<option>Table 4</option>
 </select>
 </div>
 
@@ -225,30 +221,31 @@ Reserve Table
 const APPS_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxsiGD7uabX93clkq3Y6MDnngVadcEq3fofS9jdy1nD9lkSG_rdyybkU0MCopbs04JYJg/exec";
 
-function generateTimes() {
+function generateTimes(){
 
     const select = document.getElementById("time");
 
-    select.innerHTML = "";
+    for(let hour=16; hour<=19; hour++){
 
-    for(let hour = 16; hour <= 19; hour++) {
+        for(let minute=0; minute<60; minute+=15){
 
-        for(let minute = 0; minute < 60; minute += 15) {
+            if(hour===16 && minute<30) continue;
+            if(hour===19 && minute>0) continue;
 
-            if(hour === 16 && minute < 30) continue;
-            if(hour === 19 && minute > 0) continue;
-
-            const option = document.createElement("option");
+            const option =
+            document.createElement("option");
 
             const date = new Date();
+
             date.setHours(hour);
             date.setMinutes(minute);
 
-            const timeString = date.toLocaleTimeString(
+            const timeString =
+            date.toLocaleTimeString(
                 "en-CA",
                 {
-                    hour: "numeric",
-                    minute: "2-digit"
+                    hour:"numeric",
+                    minute:"2-digit"
                 }
             );
 
@@ -262,36 +259,30 @@ function generateTimes() {
 
 generateTimes();
 
-   console.log(
-    "Time options:",
-    document.getElementById("time").options.length
-); 
-
-/* Wednesday Validation */
-
-function isWednesday(dateString) {
+function isWednesday(dateString){
 
     const parts = dateString.split("-");
 
-    const date = new Date(
+    const d = new Date(
         parseInt(parts[0]),
-        parseInt(parts[1]) - 1,
+        parseInt(parts[1])-1,
         parseInt(parts[2])
     );
 
-    return date.getDay() === 3;
+    return d.getDay() === 3;
 }
 
 document
 .getElementById("date")
-.addEventListener("change", function(e){
+.addEventListener("change",function(e){
 
     if(
         e.target.value &&
         !isWednesday(e.target.value)
     ){
-
-        alert("Please select a Wednesday.");
+        alert(
+            "Please select a Wednesday."
+        );
 
         e.target.value = "";
     }
@@ -300,93 +291,82 @@ document
 
 document
 .getElementById("signupForm")
-.addEventListener("submit",
+.addEventListener(
+"submit",
 async function(e){
 
-e.preventDefault();
+    e.preventDefault();
 
-const selectedDate =
-document.getElementById("date").value;
+    const selectedDate =
+    document.getElementById("date").value;
 
-if(!isWednesday(selectedDate)){
+    if(!isWednesday(selectedDate)){
+        alert(
+            "Bookings are only available on Wednesdays."
+        );
+        return;
+    }
 
-    alert(
-        "Bookings are only available on Wednesdays."
-    );
+    const data = {
 
-    return;
-}
-
-
-const data = {
-    Date:
+        Date:
         document.getElementById("date").value,
 
-    Table:
+        Table:
         document.getElementById("table").value,
 
-    Names:
+        Names:
         document.getElementById("names").value,
 
-    "Table Size":
+        "Table Size":
         document.getElementById("tableSize").value,
 
-    Game:
+        Game:
         document.getElementById("game").value,
 
-    Time:
+        Time:
         document.getElementById("time").value
-};
+    };
 
-const msg =
-document.getElementById("message");
+    const msg =
+    document.getElementById("message");
 
-msg.className="";
-msg.innerHTML="Saving...";
+    msg.className = "";
+    msg.innerHTML = "Saving...";
 
-try {
+    try{
 
-    await fetch(
-        APPS_SCRIPT_URL,
-        {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(data)
-        }
-    );
+        await fetch(
+            APPS_SCRIPT_URL,
+            {
+                method:"POST",
+                mode:"no-cors",
+                body:JSON.stringify(data)
+            }
+        );
 
-    msg.className = "success";
+        msg.className =
+        "success";
 
-    msg.innerHTML =
-    "✅ Signup submitted successfully.";
+        msg.innerHTML =
+        "✅ Signup submitted successfully.";
 
-    document
-    .getElementById("signupForm")
-    .reset();
+        document
+        .getElementById("signupForm")
+        .reset();
 
-}
-catch(err){
+    }
+    catch(err){
 
-    msg.className = "error";
+        msg.className =
+        "error";
 
-    msg.innerHTML =
-    "❌ Error: " + err.message;
-
-}
+        msg.innerHTML =
+        "❌ Error: " +
+        err.message;
+    }
 
 });
-
-msg.className = "success";
-msg.innerHTML =
-"✅ Signup submitted successfully.";
-
-document
-.getElementById("signupForm")
-.reset();
-
-return;
-
-
 
 </script>
 
