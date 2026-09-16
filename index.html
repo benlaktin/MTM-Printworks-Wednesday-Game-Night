@@ -9,10 +9,9 @@
 <style>
 
 :root{
-    --primary:#009599;
-    --card:#ffffff;
-    --danger:#dc2626;
+    --mtm:#009599;
     --success:#16a34a;
+    --danger:#dc2626;
 }
 
 *{
@@ -24,11 +23,11 @@
 
 body{
     background:#009599;
-    padding:30px;
+    padding:20px;
 }
 
 .container{
-    max-width:1000px;
+    max-width:1100px;
     margin:auto;
 }
 
@@ -37,15 +36,14 @@ body{
     border-radius:15px;
     padding:25px;
     margin-bottom:20px;
-    box-shadow:0 6px 20px rgba(0,0,0,.15);
 }
 
 h1{
-    margin-bottom:10px;
+    margin-bottom:20px;
 }
 
 .notice{
-    line-height:1.6;
+    line-height:1.8;
     margin-bottom:20px;
 }
 
@@ -62,7 +60,7 @@ label{
 input,
 select{
     width:100%;
-    padding:10px;
+    padding:12px;
     border:1px solid #ccc;
     border-radius:8px;
 }
@@ -70,32 +68,32 @@ select{
 button{
     width:100%;
     padding:15px;
-    background:#009599;
     border:none;
     border-radius:8px;
+    background:#009599;
     color:white;
     font-weight:bold;
     cursor:pointer;
 }
 
 button:hover{
-    opacity:0.9;
+    opacity:.9;
 }
 
 .table-card{
-    padding:15px;
     border-radius:10px;
+    padding:15px;
     margin-bottom:10px;
 }
 
 .available{
+    background:#ecfdf5;
     border-left:8px solid var(--success);
-    background:#f0fdf4;
 }
 
 .booked{
-    border-left:8px solid var(--danger);
     background:#fef2f2;
+    border-left:8px solid var(--danger);
 }
 
 .success{
@@ -129,11 +127,11 @@ Tables are free to book and game mats and terrain are available for use.
 
 <br><br>
 
-Games may start anytime after 4:30 PM but must start by 7:00 PM.
+Games can begin anytime after 4:30 PM but must begin by 7:00 PM.
 
 <br><br>
 
-Last turn is called at 9:45 PM and the shop closes for gaming at 10:00 PM.
+Last turn is called at 9:45 PM and gaming ends at 10:00 PM.
 
 </div>
 
@@ -146,7 +144,9 @@ Last turn is called at 9:45 PM and the shop closes for gaming at 10:00 PM.
 
 <div class="form-group">
 <label>Time</label>
-<select id="time" required>
+
+<select id="time">
+
 <option>4:30 PM</option>
 <option>4:45 PM</option>
 <option>5:00 PM</option>
@@ -158,14 +158,22 @@ Last turn is called at 9:45 PM and the shop closes for gaming at 10:00 PM.
 <option>6:30 PM</option>
 <option>6:45 PM</option>
 <option>7:00 PM</option>
+
 </select>
+
 </div>
 
 <div class="form-group">
 <label>Available Table</label>
+
 <select id="table" required>
-<option value="">Select Date & Time First</option>
+
+<option value="">
+Select Date & Time First
+</option>
+
 </select>
+
 </div>
 
 <div class="form-group">
@@ -175,16 +183,22 @@ Last turn is called at 9:45 PM and the shop closes for gaming at 10:00 PM.
 
 <div class="form-group">
 <label>Table Size</label>
+
 <select id="tableSize">
+
 <option>4'x4'</option>
 <option>4'x6'</option>
 <option>4'x8'</option>
+
 </select>
+
 </div>
 
 <div class="form-group">
 <label>Game</label>
+
 <select id="game">
+
 <option>MESBG</option>
 <option>Warhammer 40k</option>
 <option>Warhammer Age of Sigmar</option>
@@ -193,11 +207,15 @@ Last turn is called at 9:45 PM and the shop closes for gaming at 10:00 PM.
 <option>SAGA</option>
 <option>Bolt Action</option>
 <option>Other</option>
+
 </select>
+
 </div>
 
 <button type="submit">
+
 Reserve Table
+
 </button>
 
 <div id="message"></div>
@@ -212,7 +230,7 @@ Reserve Table
 
 <div id="availability">
 
-Choose a date and time above.
+Select a Date and Time above.
 
 </div>
 
@@ -223,55 +241,55 @@ Choose a date and time above.
 <script>
 
 const APPS_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbxgnfAN9BV0Zpv6PyVgvwqwa6Qwz7YjMBxhojeHl72GLkMzXkYgp3qROJdvWrPPZ6zrVg/exec";
+"https://script.google.com/macros/s/AKfycbxNO2i7ldLYQl92DQtQNK2TQgsebgHiaJBZfC1kob--8qier2XAv7tVv9S4xpXaTkzC8A/exec";
 
 const TABLES = [
-    "Table 1",
-    "Table 2",
-    "Table 3",
-    "Table 4"
+"Table 1",
+"Table 2",
+"Table 3",
+"Table 4"
 ];
 
 document
 .getElementById("date")
 .addEventListener(
-    "change",
-    loadAvailability
+"change",
+loadAvailability
 );
 
 document
 .getElementById("time")
 .addEventListener(
-    "change",
-    loadAvailability
+"change",
+loadAvailability
 );
 
-function convertTimeToMinutes(time){
+function toMinutes(time){
 
     const parts =
-        time.match(
-            /(\d+):(\d+)\s*(AM|PM)/i
-        );
+    time.match(
+    /(\d+):(\d+)\s*(AM|PM)/i
+    );
 
     let hour =
-        parseInt(parts[1]);
+    parseInt(parts[1]);
 
     const minute =
-        parseInt(parts[2]);
+    parseInt(parts[2]);
 
     const ampm =
-        parts[3].toUpperCase();
+    parts[3];
 
     if(
-        ampm === "PM" &&
-        hour !== 12
+        ampm.toUpperCase() === "PM"
+        && hour !== 12
     ){
         hour += 12;
     }
 
     if(
-        ampm === "AM" &&
-        hour === 12
+        ampm.toUpperCase() === "AM"
+        && hour === 12
     ){
         hour = 0;
     }
@@ -279,82 +297,109 @@ function convertTimeToMinutes(time){
     return hour * 60 + minute;
 }
 
+function formatTime(minutes){
+
+    let h =
+    Math.floor(minutes/60);
+
+    const m =
+    minutes % 60;
+
+    let suffix =
+    h >= 12 ? "PM" : "AM";
+
+    if(h > 12){
+        h -= 12;
+    }
+
+    return h + ":" +
+    m.toString().padStart(2,"0")
+    + " " + suffix;
+
+}
+
+function isWednesday(date){
+
+    const d =
+    new Date(date);
+
+    return d.getDay() === 3;
+
+}
+
 async function loadAvailability(){
 
     const date =
-        document
-        .getElementById("date")
-        .value;
+    document
+    .getElementById("date")
+    .value;
 
     const selectedTime =
-        document
-        .getElementById("time")
-        .value;
+    document
+    .getElementById("time")
+    .value;
 
-    if(!date) return;
+    if(!date){
+        return;
+    }
 
     const response =
-        await fetch(
-            APPS_SCRIPT_URL +
-            "?date=" +
-            date
-        );
+    await fetch(
+        APPS_SCRIPT_URL +
+        "?mode=availability&date=" +
+        date
+    );
 
     const bookings =
-        await response.json();
+    await response.json();
 
-    const availability =
-        document
-        .getElementById(
-            "availability"
-        );
+    const tableSelect =
+    document
+    .getElementById("table");
 
-    const tableDropdown =
-        document
-        .getElementById(
-            "table"
-        );
+    tableSelect.innerHTML = "";
 
-    tableDropdown.innerHTML =
-        "";
-
-    let html = "";
+    let availabilityHTML = "";
 
     TABLES.forEach(table=>{
 
-        const bookingsForTable =
+        const tableBookings =
         bookings.filter(
-            b=>b.table===table
+            booking =>
+            booking.table === table
         );
 
-        let available =
+        let tableAvailable =
         true;
 
-        bookingsForTable.forEach(b=>{
+        tableBookings.forEach(booking=>{
 
             const existing =
-                convertTimeToMinutes(
-                    b.time
-                );
+            toMinutes(
+                booking.time
+            );
 
             const selected =
-                convertTimeToMinutes(
-                    selectedTime
-                );
+            toMinutes(
+                selectedTime
+            );
 
             const diff =
-                Math.abs(
-                    existing -
-                    selected
-                );
+            Math.abs(
+                existing -
+                selected
+            );
 
             if(diff < 150){
-                available = false;
+
+                tableAvailable =
+                false;
+
             }
 
         });
 
-        if(available){
+        if(tableAvailable){
 
             const option =
             document
@@ -363,96 +408,168 @@ async function loadAvailability(){
             );
 
             option.value =
-                table;
+            table;
 
             option.textContent =
-                table;
+            table;
 
-            tableDropdown.appendChild(
+            tableSelect.appendChild(
                 option
             );
 
         }
 
-        if(bookingsForTable.length){
+        if(
+            tableBookings.length === 0
+        ){
 
-            bookingsForTable.forEach(b=>{
+            availabilityHTML += `
+            <div class="table-card available">
+            <strong>${table}</strong><br>
+            Available
+            </div>
+            `;
 
-                html += `
+        }
+        else{
+
+            tableBookings.forEach(
+            booking=>{
+
+                const start =
+                toMinutes(
+                    booking.time
+                );
+
+                const end =
+                start + 150;
+
+                availabilityHTML += `
                 <div class="table-card booked">
-                    <strong>${table}</strong><br>
-                    ${b.names}<br>
-                    ${b.game}<br>
-                    ${b.time}
+
+                <strong>${table}</strong><br>
+
+                Player:
+                ${booking.names}<br>
+
+                Game:
+                ${booking.game}<br>
+
+                Time:
+                ${booking.time}
+                -
+                ${formatTime(end)}
+
                 </div>
                 `;
 
             });
 
         }
-        else{
-
-            html += `
-            <div class="table-card available">
-                <strong>${table}</strong><br>
-                Available
-            </div>
-            `;
-
-        }
 
     });
 
     availability.innerHTML =
-        html;
+    availabilityHTML;
 
 }
 
 document
-.getElementById("bookingForm")
+.getElementById(
+"bookingForm"
+)
 .addEventListener(
 "submit",
 async function(e){
 
     e.preventDefault();
 
-    const data = {
+    const date =
+    document
+    .getElementById("date")
+    .value;
+
+    if(
+        !isWednesday(date)
+    ){
+
+        alert(
+        "Please select a Wednesday."
+        );
+
+        return;
+    }
+
+    const booking = {
 
         Date:
-        document.getElementById("date").value,
+        date,
 
         Table:
-        document.getElementById("table").value,
+        document
+        .getElementById("table")
+        .value,
 
         Names:
-        document.getElementById("names").value,
+        document
+        .getElementById("names")
+        .value,
 
         "Table Size":
-        document.getElementById("tableSize").value,
+        document
+        .getElementById("tableSize")
+        .value,
 
         Game:
-        document.getElementById("game").value,
+        document
+        .getElementById("game")
+        .value,
 
         Time:
-        document.getElementById("time").value
+        document
+        .getElementById("time")
+        .value
 
     };
 
+    const response =
     await fetch(
         APPS_SCRIPT_URL,
         {
             method:"POST",
-            mode:"no-cors",
-            body:JSON.stringify(data)
+            body:JSON.stringify(
+                booking
+            )
         }
     );
 
-    document
-    .getElementById("message")
-    .innerHTML =
-    "<div class='success'>Reservation Submitted</div>";
+    const result =
+    await response.json();
 
-    loadAvailability();
+    if(result.success){
+
+        document
+        .getElementById(
+            "message"
+        )
+        .innerHTML =
+        "<div class='success'>Reservation Submitted</div>";
+
+        loadAvailability();
+
+    }
+    else{
+
+        document
+        .getElementById(
+            "message"
+        )
+        .innerHTML =
+        "<div class='error'>" +
+        result.message +
+        "</div>";
+
+    }
 
 });
 
