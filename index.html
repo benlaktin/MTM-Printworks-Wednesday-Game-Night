@@ -318,15 +318,45 @@ function formatTime(minutes){
 
 }
 
-function isWednesday(date){
+function isWednesday(dateString){
 
-    const d =
-    new Date(date);
+    const parts =
+    dateString.split("-");
 
-    return d.getDay() === 3;
+    const date =
+    new Date(
+        parseInt(parts[0]),
+        parseInt(parts[1]) - 1,
+        parseInt(parts[2])
+    );
+
+    return date.getDay() === 3;
 
 }
 
+    document
+.getElementById("date")
+.addEventListener(
+"change",
+function(){
+
+    const date =
+    this.value;
+
+    if(
+        date &&
+        !isWednesday(date)
+    ){
+
+        alert(
+            "Please select a Wednesday."
+        );
+
+        this.value = "";
+
+    }
+
+});
 async function loadAvailability(){
 
     const date =
