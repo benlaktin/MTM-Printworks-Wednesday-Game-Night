@@ -227,41 +227,41 @@ const APPS_SCRIPT_URL =
 
 function generateTimes() {
 
-    const select =
-    document.getElementById("time");
+    const select = document.getElementById("time");
 
-    let start =
-    new Date(2022,0,1,16,30);
+    select.innerHTML = "";
 
-    let end =
-    new Date(2022,0,1,19,0);
+    for(let hour = 16; hour <= 19; hour++) {
 
-    while(start <= end){
+        for(let minute = 0; minute < 60; minute += 15) {
 
-        const timeString =
-        start.toLocaleTimeString(
-            [],
-            {
-                hour:'numeric',
-                minute:'2-digit'
-            }
-        );
+            if(hour === 16 && minute < 30) continue;
+            if(hour === 19 && minute > 0) continue;
 
-        const option =
-        document.createElement("option");
+            const option = document.createElement("option");
 
-        option.value=timeString;
-        option.textContent=timeString;
+            const date = new Date();
+            date.setHours(hour);
+            date.setMinutes(minute);
 
-        select.appendChild(option);
+            const timeString = date.toLocaleTimeString(
+                "en-CA",
+                {
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            );
 
-        start.setMinutes(
-            start.getMinutes()+15
-        );
+            option.value = timeString;
+            option.textContent = timeString;
+
+            select.appendChild(option);
+        }
     }
 }
 
 generateTimes();
+``
 
 /* Wednesday Validation */
 
