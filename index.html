@@ -342,45 +342,26 @@ msg.innerHTML="Saving...";
 
 try{
 
-const response = await fetch(
+await fetch(
     APPS_SCRIPT_URL,
     {
-        method:"POST",
+        method: "POST",
+        mode: "no-cors",
         body: JSON.stringify(data)
     }
 );
 
-const result =
-await response.json();
+msg.className = "success";
+msg.innerHTML =
+"✅ Signup submitted successfully.";
 
-if(result.success){
+document
+.getElementById("signupForm")
+.reset();
 
-    msg.className="success";
+return;
 
-    msg.innerHTML =
-    "✅ Signup submitted successfully.";
 
-    document
-    .getElementById("signupForm")
-    .reset();
-
-}else{
-
-    throw new Error(
-        result.error
-    );
-}
-
-}catch(err){
-
-    msg.className="error";
-
-    msg.innerHTML =
-    "❌ Error: "
-    + err.message;
-}
-
-});
 
 </script>
 
