@@ -334,29 +334,7 @@ function isWednesday(dateString){
 
 }
 
-    document
-.getElementById("date")
-.addEventListener(
-"change",
-function(){
 
-    const date =
-    this.value;
-
-    if(
-        date &&
-        !isWednesday(date)
-    ){
-
-        alert(
-            "Please select a Wednesday."
-        );
-
-        this.value = "";
-
-    }
-
-});
 async function loadAvailability(){
 
     const date =
