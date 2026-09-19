@@ -535,13 +535,15 @@ button {
       </p>
     </div>
 
-    <div class="schedule-notice">
-      Games can start after 4:30 PM and must start by 7:00 PM.
-      Each reservation lasts 2.5 hours. Last turn is called at
-      9:45 PM, and the shop closes for gaming at 10:00 PM.
-      If there are no Wednesday signups, the shop closes at
-      its regular 6:00 PM time.
-    </div>
+<div class="schedule-notice">
+  Games can start after 4:30 PM and must start by 7:00 PM.
+  Please select your planned start time when registering so
+  other players and the store host can see when your game
+  is expected to begin. Last turn is called at 9:45 PM,
+  and the shop closes for gaming at 10:00 PM.
+  If there are no Wednesday signups, the shop closes at
+  its regular 6:00 PM time.
+</div>
 
     <div class="search-grid">
 
@@ -576,9 +578,9 @@ button {
           <option value="19:00">7:00 PM</option>
         </select>
 
-        <div class="form-help">
-          Each reservation lasts 2.5 hours.
-        </div>
+<div class="form-help">
+  Select the time you expect your game to begin.
+</div>
       </div>
 
       <div class="full-width">
@@ -621,10 +623,9 @@ button {
 
             <select id="table" required></select>
 
-            <div class="form-help">
-              Only tables available for the selected 2.5-hour
-              period are listed.
-            </div>
+<div class="form-help">
+  Select the table you plan to use for your game.
+</div>
           </div>
 
           <div class="form-group full-width">
@@ -745,8 +746,7 @@ button {
  * Paste the Apps Script Web App URL ending in /exec below.
  * Do not use the /dev URL.
  */
-const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbws5CgmPUJolwpEvm-588w_BzUisJ6Um1E9MAPlqGQYjZWOi5LO8VSFnqcufp2rS6yEnw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws5CgmPUJolwpEvm-588w_BzUisJ6Um1E9MAPlqGQYjZWOi5LO8VSFnqcufp2rS6yEnw/exec";
 
 const TABLES = [
   "Table 1",
@@ -755,7 +755,7 @@ const TABLES = [
   "Table 4"
 ];
 
-const BOOKING_LENGTH_MINUTES = 150;
+
 
 const dateInput =
   document.getElementById("date");
@@ -971,17 +971,7 @@ function formatDateForDisplay(dateString) {
 }
 
 
-function intervalsOverlap(
-  firstStart,
-  firstEnd,
-  secondStart,
-  secondEnd
-) {
-  return (
-    firstStart < secondEnd &&
-    secondStart < firstEnd
-  );
-}
+
 
 
 function setMessage(
@@ -1146,56 +1136,10 @@ function getBookingStart(booking) {
 }
 
 
-function getBookingEnd(booking) {
-  if (
-    Number.isFinite(
-      Number(booking.endMinutes)
-    )
-  ) {
-    return Number(booking.endMinutes);
-  }
-
-  const start = getBookingStart(booking);
-
-  return start === null
-    ? null
-    : start + BOOKING_LENGTH_MINUTES;
-}
 
 
-function bookingConflictsWithSelection(
-  booking
-) {
-  const selectedStart =
-    getSelectedStartMinutes();
 
-  if (selectedStart === null) {
-    return false;
-  }
 
-  const selectedEnd =
-    selectedStart + BOOKING_LENGTH_MINUTES;
-
-  const existingStart =
-    getBookingStart(booking);
-
-  const existingEnd =
-    getBookingEnd(booking);
-
-  if (
-    existingStart === null ||
-    existingEnd === null
-  ) {
-    return false;
-  }
-
-  return intervalsOverlap(
-    selectedStart,
-    selectedEnd,
-    existingStart,
-    existingEnd
-  );
-}
 
 
 function hideLoadedResults() {
@@ -1213,30 +1157,23 @@ function hideLoadedResults() {
 
 
 function renderAvailability() {
-  const selectedStart =
-    getSelectedStartMinutes();
+const selectedStart =
+  getSelectedStartMinutes();
 
-  const selectedEnd =
-    selectedStart + BOOKING_LENGTH_MINUTES;
+selectedRequest.innerHTML =
+  "<strong>Planned game start:</strong> " +
+  escapeHtml(
+    formatDateForDisplay(dateInput.value)
+  ) +
+  ", " +
+  escapeHtml(
+    formatMinutes(selectedStart)
+  );
 
-  selectedRequest.innerHTML =
-    "<strong>Requested reservation:</strong> " +
-    escapeHtml(
-      formatDateForDisplay(dateInput.value)
-    ) +
-    ", " +
-    escapeHtml(formatMinutes(selectedStart)) +
-    " to " +
-    escapeHtml(formatMinutes(selectedEnd)) +
-    ".";
-
-  availabilityDescription.textContent =
-    formatDateForDisplay(dateInput.value) +
-    ", requested time " +
-    formatMinutes(selectedStart) +
-    " to " +
-    formatMinutes(selectedEnd) +
-    ".";
+availabilityDescription.textContent =
+  formatDateForDisplay(dateInput.value) +
+  ", planned start time " +
+  formatMinutes(selectedStart);
 
   tableSelect.innerHTML = "";
 
@@ -1257,49 +1194,32 @@ function renderAvailability() {
           );
         });
 
-    const conflictingBooking =
-      tableBookings.find(
-        bookingConflictsWithSelection
-      );
+availableTables.push(tableName);
 
-    const availableAtSelectedTime =
-      !conflictingBooking;
+const option =
+  document.createElement("option");
 
-    if (availableAtSelectedTime) {
-      availableTables.push(tableName);
+option.value = tableName;
+option.textContent = tableName;
 
-      const option =
-        document.createElement("option");
+tableSelect.appendChild(option);
 
-      option.value = tableName;
-      option.textContent = tableName;
+let cardClass = "available";
+let badgeClass = "available";
+let badgeText = "Open";
 
-      tableSelect.appendChild(option);
-    }
-
-    let cardClass = "available";
-    let badgeClass = "available";
-    let badgeText = "Available";
-
-    if (conflictingBooking) {
-      cardClass = "unavailable";
-      badgeClass = "unavailable";
-      badgeText =
-        "Unavailable at selected time";
-
-    } else if (tableBookings.length > 0) {
-      cardClass = "partial";
-      badgeClass = "partial";
-      badgeText =
-        "Available at selected time";
-    }
+if (tableBookings.length > 0) {
+  cardClass = "partial";
+  badgeClass = "partial";
+  badgeText = "Scheduled Games";
+}
 
     let bookingHtml = "";
 
     if (tableBookings.length === 0) {
       bookingHtml =
         '<div class="empty-note">' +
-        "This table is free for the full evening." +
+        "No games currently scheduled." +
         "</div>";
 
     } else {
@@ -1309,38 +1229,27 @@ function renderAvailability() {
           const start =
             getBookingStart(booking);
 
-          const end =
-            getBookingEnd(booking);
-
-          if (
-            start === null ||
-            end === null
-          ) {
-            return "";
-          }
-
+if (start === null) {
+  return "";
+}
           return (
             '<div class="booking-entry">' +
               '<div class="booking-name">' +
                 escapeHtml(booking.names) +
               "</div>" +
               '<div class="booking-detail">' +
-                escapeHtml(booking.game) +
-                (
-                  booking.tableSize
-                    ? " · " +
-                      escapeHtml(
-                        booking.tableSize
-                      )
-                    : ""
-                ) +
-              "</div>" +
-              '<div class="booking-detail">' +
-                formatMinutes(start) +
-                " to " +
-                formatMinutes(end) +
-              "</div>" +
-            "</div>"
+  escapeHtml(booking.game) +
+  (
+    booking.tableSize
+      ? " · " + escapeHtml(booking.tableSize)
+      : ""
+  ) +
+'</div>' +
+'<div class="booking-detail">' +
+  'Planned Start: ' +
+  formatMinutes(start) +
+'</div>' +
+'</div>'
           );
         }).join("") +
         "</div>";
@@ -1366,47 +1275,18 @@ function renderAvailability() {
 
   availabilityList.innerHTML = html;
 
-  if (availableTables.length === 0) {
-    const option =
-      document.createElement("option");
+tableSelect.disabled = false;
+submitButton.disabled = false;
+clearMessage(formMessage);
 
-    option.value = "";
-    option.textContent =
-      "No tables available at this time";
+resultsLoaded = true;
 
-    tableSelect.appendChild(option);
-    tableSelect.disabled = true;
-    submitButton.disabled = true;
+reservationSection.classList.remove("hidden");
+availabilitySection.classList.remove("hidden");
 
-    setMessage(
-      formMessage,
-      "All four tables conflict with the selected time.",
-      "error"
-    );
+reservationSection.classList.add("reveal-section");
+availabilitySection.classList.add("reveal-section");
 
-  } else {
-    tableSelect.disabled = false;
-    submitButton.disabled = false;
-    clearMessage(formMessage);
-  }
-
-  reservationSection.classList.remove(
-    "hidden"
-  );
-
-  availabilitySection.classList.remove(
-    "hidden"
-  );
-
-  reservationSection.classList.add(
-    "reveal-section"
-  );
-
-  availabilitySection.classList.add(
-    "reveal-section"
-  );
-
-  resultsLoaded = true;
 }
 
 
